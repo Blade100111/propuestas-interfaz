@@ -1,3 +1,51 @@
-/* You can add global styles to this file, and also import other style files */
+/* Global styles — Propuestas Interfaz / subsistema GAIA */
+/* Manrope loaded via <link> in index.html — all @import must precede @layer rules */
 
 @import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Manrope', system-ui, sans-serif;
+  --color-gaia:         #731514;
+  --color-gaia-dark:    #5e1212;
+  --color-danger:       #930E10;
+  --color-warning-cd:   #FF9311;
+  --color-warning-prs:  #FFB051;
+  --color-success:      #218B22;
+}
+
+/* ── Browser surface theming ─────────────────────────────────────────────── */
+
+@layer base {
+  html {
+    font-family: 'Manrope', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background-color: #731514;
+    color: #ffffff;
+  }
+
+  :focus-visible {
+    outline: 2px solid #731514;
+    outline-offset: 2px;
+  }
+
+  input,
+  textarea,
+  select {
+    caret-color: #731514;
+  }
+
+  /* Scrollbar — tab rail */
+  .tab-rail {
+    scrollbar-width: none;
+  }
+  .tab-rail::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Tabular numerals for contract numbers and years */
+  .tabular { font-variant-numeric: tabular-nums; }
+}

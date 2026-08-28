@@ -1,0 +1,591 @@
+<!-- informe-contratista.component.html
+     Route: /gestion-contratista/informe/:pagoMensualId
+     Mode: Operate — editable (CD/RS/PRS) or read-only (AS/AP/RO) based on estado -->
+
+<div class="min-h-screen bg-gray-50">
+
+<!-- ── Skeleton loader ── -->
+@if (cargando()) {
+  <div class="animate-pulse border-b border-gray-200 bg-white px-4 sm:px-6">
+    <div class="mx-auto max-w-3xl py-6">
+      <div class="h-4 w-36 rounded bg-gray-200 mb-3"></div>
+      <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <div class="h-7 w-56 rounded bg-gray-200"></div>
+        <div class="h-5 w-28 rounded-full bg-gray-200"></div>
+      </div>
+    </div>
+  </div>
+  <div
+    class="mx-auto max-w-3xl px-4 py-6 sm:px-6 animate-pulse"
+    aria-busy="true"
+    aria-label="Cargando informe de gestión"
+  >
+    <div class="rounded-xl border border-gray-100 bg-white p-5 mb-5 shadow-sm space-y-2">
+      <div class="h-3 w-24 rounded bg-gray-200"></div>
+      <div class="h-4 rounded bg-gray-200 w-full"></div>
+      <div class="h-4 rounded bg-gray-200 w-4/5"></div>
+      <div class="h-3 w-28 rounded bg-gray-200 mt-3"></div>
+      <div class="h-4 rounded bg-gray-200 w-full"></div>
+      <div class="h-4 rounded bg-gray-200 w-3/5"></div>
+    </div>
+    <div class="h-10 rounded-lg bg-gray-200 mb-4"></div>
+    <div class="grid grid-cols-2 gap-3 mb-5">
+      <div class="h-10 rounded-lg bg-gray-200"></div>
+      <div class="h-10 rounded-lg bg-gray-200"></div>
+    </div>
+    <div class="rounded-xl border border-gray-100 bg-white shadow-sm divide-y divide-gray-100">
+      <div class="px-4 py-3 flex items-center gap-3">
+        <div class="flex flex-col gap-0.5"><div class="w-7 h-3 rounded bg-gray-200"></div><div class="w-7 h-3 rounded bg-gray-200 mt-1"></div></div>
+        <div class="flex-1 h-4 rounded bg-gray-200"></div>
+        <div class="h-5 w-10 rounded-full bg-gray-200"></div>
+      </div>
+      <div class="px-4 py-3 flex items-center gap-3">
+        <div class="flex flex-col gap-0.5"><div class="w-7 h-3 rounded bg-gray-200"></div><div class="w-7 h-3 rounded bg-gray-200 mt-1"></div></div>
+        <div class="flex-1 h-4 rounded bg-gray-200 w-3/4"></div>
+        <div class="h-5 w-10 rounded-full bg-gray-200"></div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ── Not found ── -->
+@else if (!contrato()) {
+  <div class="flex flex-col items-center justify-center py-20 text-center px-4">
+    <p class="text-sm text-gray-400 mb-4">
+      No se encontró el informe para el pago mensual #{{ pagoMensualId }}.
+    </p>
+    <button [class]="backBtnCls" (click)="volver()">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M10 12L6 8l4-4"/>
+      </svg>
+      Volver al soporte
+    </button>
+  </div>
+}
+
+<!-- ── Main content ── -->
+@else {
+  <header class="border-b border-gray-200 bg-white px-4 sm:px-6">
+    <div class="mx-auto max-w-3xl py-6">
+      <button
+        [class]="backBtnCls"
+        (click)="volver()"
+        aria-label="Volver a la pantalla de soporte del contrato"
+      >
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M10 12L6 8l4-4"/>
+        </svg>
+        Volver al soporte
+      </button>
+      <div class="mt-1 flex flex-wrap items-center justify-between gap-x-4 gap-y-1.5">
+        <h1 class="text-xl font-bold tracking-tight text-gray-900">
+          Informe &mdash; Contrato {{ contrato()!.numeroContrato }}
+        </h1>
+        <span
+          [class]="chipClass(contrato()!.estado)"
+          [attr.aria-label]="'Estado: ' + chipLabel(contrato()!.estado)"
+        >{{ chipLabel(contrato()!.estado) }}</span>
+      </div>
+    </div>
+  </header>
+  <main class="mx-auto max-w-3xl px-4 py-6 sm:px-6">
+
+    <!-- ── Context card (always read-only) ── -->
+    <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm mb-5">
+      <p class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">
+        Objeto del contrato
+      </p>
+      <p class="text-sm text-gray-700 leading-relaxed mb-4">
+        {{ contrato()!.objeto }}
+      </p>
+      <p class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">
+        Actividades contratadas
+      </p>
+      <p class="text-sm text-gray-500 leading-relaxed">
+        {{ contrato()!.actividadesContrato }}
+      </p>
+    </div>
+
+    <!-- ── RS notice (editable state with supervisor rejection) ── -->
+    @if (contrato()!.estado === 'RS') {
+      <div [class]="rsPanelCls" role="alert">
+        <div class="flex items-start gap-3">
+          <div class="shrink-0 mt-0.5">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="#930E10" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M9.15 3.5L2 16.5h16L10.85 3.5a1 1 0 00-1.7 0z"/>
+              <line x1="10" y1="8.5" x2="10" y2="12.5"/>
+              <circle cx="10" cy="15" r="0.5" fill="#930E10"/>
+            </svg>
+          </div>
+          <div class="min-w-0">
+            <p class="text-sm font-semibold text-[#5e0a0b] mb-1">Cumplido rechazado por supervisor</p>
+            <p class="text-sm text-[#5e0a0b] leading-relaxed">
+              Puede corregir el informe y volver a la pantalla de soporte para reenviar a revisión.
+            </p>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- ── Status banner — AS ── -->
+    @if (contrato()!.estado === 'AS') {
+      <div [class]="infoPanelCls" role="status">
+        <svg class="shrink-0 mt-0.5" width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="#9CA3AF" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="10" cy="10" r="8"/>
+          <polyline points="6.5,10 9,12.5 13.5,7.5"/>
+        </svg>
+        <p class="text-sm text-gray-600">
+          Aprobado por supervisor. Pendiente de aprobación del ordenador del gasto.
+        </p>
+      </div>
+    }
+
+    <!-- ── Status banner — AP ── -->
+    @if (contrato()!.estado === 'AP') {
+      <div [class]="successPanelCls" role="status">
+        <svg class="shrink-0 mt-0.5" width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="#218B22" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="10" cy="10" r="8"/>
+          <polyline points="6.5,10 9,12.5 13.5,7.5"/>
+        </svg>
+        <p class="text-sm font-medium text-[#218B22]">Cumplido aprobado y procesado para pago.</p>
+      </div>
+    }
+
+    <!-- ── Status banner — RO ── -->
+    @if (contrato()!.estado === 'RO') {
+      <div [class]="roPanelCls" role="status">
+        <div class="flex items-start gap-3">
+          <div class="shrink-0 mt-0.5">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="#6B7280" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="10" cy="10" r="8"/>
+              <circle cx="10" cy="7" r="0.5" fill="#6B7280"/>
+              <line x1="10" y1="10" x2="10" y2="14"/>
+            </svg>
+          </div>
+          <div>
+            <p class="text-sm font-semibold text-gray-700 mb-1">Rechazado por el ordenador del gasto</p>
+            <p class="text-sm text-gray-600">Estado terminal — contacte a su supervisor para conocer los pasos a seguir.</p>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <!-- EDITABLE MODE (CD / RS)                                             -->
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    @if (esEditable()) {
+
+      <!-- "Última vez guardado" — static visual indicator, no behavior -->
+      <p class="text-xs text-gray-400 text-right mb-4" aria-hidden="true">
+        Guardado: 26 ago 2025, 10:32
+      </p>
+
+      <!-- Form header: Proceso + date range -->
+      <div class="space-y-4 mb-6">
+        <div>
+          <label for="select-proceso" [class]="labelCls">Proceso institucional</label>
+          <select
+            id="select-proceso"
+            [class]="selectCls"
+            [value]="proceso"
+            (change)="proceso = $any($event.target).value"
+          >
+            <option value="">Seleccionar proceso...</option>
+            @for (p of procesos; track p) {
+              <option [value]="p" [selected]="proceso === p">{{ p }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="fecha-inicio" [class]="labelCls">Período inicio</label>
+            <input
+              id="fecha-inicio"
+              type="date"
+              [class]="inputCls"
+              [value]="periodoInicio"
+              [min]="contrato()!.fechaInicio"
+              [max]="contrato()!.fechaFin"
+              (change)="periodoInicio = $any($event.target).value"
+            />
+          </div>
+          <div>
+            <label for="fecha-fin" [class]="labelCls">Período fin</label>
+            <input
+              id="fecha-fin"
+              type="date"
+              [class]="inputCls"
+              [value]="periodoFin"
+              [min]="contrato()!.fechaInicio"
+              [max]="contrato()!.fechaFin"
+              (change)="periodoFin = $any($event.target).value"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Accordion list — Level 1 activities -->
+      @if (actividades().length > 0) {
+        <ul
+          class="space-y-3 mb-4"
+          aria-label="Actividades específicas del informe"
+        >
+          @for (act of actividades(); track $index; let i = $index) {
+            <li
+              [class]="act.expandida ? actividadItemExpandidaCls : actividadItemCls"
+              [style.border-left-width.px]="act.expandida ? 5 : null"
+              [style.border-left-color]="act.expandida ? '#731514' : null"
+            >
+              <!-- ── Row header (click to expand) ── -->
+              <div
+                class="flex items-center gap-2 px-3 py-3 hover:bg-[#731514]/5 cursor-pointer select-none"
+                role="button"
+                [attr.aria-expanded]="act.expandida"
+                [attr.aria-label]="'Actividad ' + (i + 1) + ': ' + (act.actividadEspecifica || 'Sin título')"
+                tabindex="0"
+                (click)="toggleExpand(i)"
+                (keydown.enter)="toggleExpand(i)"
+                (keydown.space)="$event.preventDefault(); toggleExpand(i)"
+              >
+                <!-- ↑ / ↓ reorder buttons — stopPropagation to avoid toggling expand -->
+                <div
+                  class="flex flex-col gap-0.5 shrink-0"
+                  (click)="$event.stopPropagation()"
+                >
+                  <button
+                    type="button"
+                    [class]="iconBtnCls"
+                    [disabled]="i === 0"
+                    [attr.aria-disabled]="i === 0"
+                    (click)="moverArriba(i)"
+                    aria-label="Mover actividad arriba"
+                  >
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <polyline points="2,7 5,3 8,7"/>
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    [class]="iconBtnCls"
+                    [disabled]="i === actividades().length - 1"
+                    [attr.aria-disabled]="i === actividades().length - 1"
+                    (click)="moverAbajo(i)"
+                    aria-label="Mover actividad abajo"
+                  >
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <polyline points="2,3 5,7 8,3"/>
+                    </svg>
+                  </button>
+                </div>
+
+                <!-- Activity text (truncated) -->
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm text-gray-700 truncate leading-snug">
+                    {{ act.actividadEspecifica || 'Actividad sin título' }}
+                  </p>
+                </div>
+
+                <!-- Avance badge -->
+                <span
+                  class="shrink-0 text-xs font-semibold tabular-nums text-gray-500 bg-gray-100 rounded-full px-2 py-0.5 ml-1"
+                  aria-label="Avance {{ act.avance }}%"
+                >{{ act.avance }}%</span>
+
+                <!-- Expand chevron -->
+                <svg
+                  class="shrink-0 text-gray-400 transition-transform duration-150"
+                  [class.rotate-180]="act.expandida"
+                  width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M4 6l4 4 4-4"/>
+                </svg>
+
+                <!-- Delete button -->
+                <button
+                  type="button"
+                  [class]="deleteBtnCls"
+                  (click)="$event.stopPropagation(); eliminarActividad(i)"
+                  [attr.aria-label]="'Eliminar actividad ' + (i + 1)"
+                >
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                    <line x1="2" y1="2" x2="10" y2="10"/>
+                    <line x1="10" y1="2" x2="2" y2="10"/>
+                  </svg>
+                </button>
+              </div>
+
+              <!-- ── Expanded body ── -->
+              @if (act.expandida) {
+                <div class="px-4 pt-4 pb-5 border-t border-gray-100 bg-gray-50/40 space-y-4">
+
+                  <!-- Actividad específica + Avance side by side -->
+                  <div class="grid grid-cols-1 sm:grid-cols-[1fr_7rem] gap-3">
+                    <div>
+                      <label [class]="labelCls" [attr.for]="'act-texto-' + i">
+                        Actividad específica
+                      </label>
+                      <input
+                        [id]="'act-texto-' + i"
+                        type="text"
+                        maxlength="1000"
+                        [class]="inputCls"
+                        [value]="act.actividadEspecifica"
+                        (input)="onActividadEspecificaInput(i, $event)"
+                        placeholder="Describa la actividad general..."
+                      />
+                    </div>
+                    <div>
+                      <label [class]="labelCls" [attr.for]="'act-avance-' + i">
+                        Avance (%)
+                      </label>
+                      <input
+                        [id]="'act-avance-' + i"
+                        type="number"
+                        min="0"
+                        max="100"
+                        [class]="inputCls"
+                        [value]="act.avance"
+                        (input)="onAvanceInput(i, $event)"
+                        aria-label="Porcentaje de avance"
+                      />
+                    </div>
+                  </div>
+
+                  <!-- Level 2 — Actividades realizadas -->
+                  @if (act.actividadesRealizadas.length > 0) {
+                    <div class="space-y-3">
+                      <div class="flex items-center gap-1.5 mb-3">
+                        <span class="inline-block w-[3px] h-3.5 rounded-full bg-[#731514]" aria-hidden="true"></span>
+                        <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">Actividades realizadas</p>
+                      </div>
+                      @for (ar of act.actividadesRealizadas; track $index; let arI = $index) {
+                        <div class="rounded-lg border border-gray-200 bg-white px-4 py-3">
+                          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <div>
+                              <label [class]="labelCls" [attr.for]="'ar-actividad-' + i + '-' + arI">
+                                Actividad realizada
+                              </label>
+                              <textarea
+                                [id]="'ar-actividad-' + i + '-' + arI"
+                                rows="3"
+                                maxlength="1000"
+                                [class]="textareaCls"
+                                [value]="ar.actividad"
+                                (input)="onActividadRealizadaInput(i, arI, 'actividad', $event)"
+                                placeholder="¿Qué hizo?"
+                              ></textarea>
+                            </div>
+                            <div>
+                              <label [class]="labelCls" [attr.for]="'ar-producto-' + i + '-' + arI">
+                                Producto asociado
+                              </label>
+                              <textarea
+                                [id]="'ar-producto-' + i + '-' + arI"
+                                rows="3"
+                                maxlength="250"
+                                [class]="textareaCls"
+                                [value]="ar.productoAsociado"
+                                (input)="onActividadRealizadaInput(i, arI, 'productoAsociado', $event)"
+                                placeholder="¿Qué entregó?"
+                              ></textarea>
+                            </div>
+                            <div>
+                              <label [class]="labelCls" [attr.for]="'ar-evidencia-' + i + '-' + arI">
+                                Evidencia
+                              </label>
+                              <textarea
+                                [id]="'ar-evidencia-' + i + '-' + arI"
+                                rows="3"
+                                maxlength="1000"
+                                [class]="textareaCls"
+                                [value]="ar.evidencia"
+                                (input)="onActividadRealizadaInput(i, arI, 'evidencia', $event)"
+                                placeholder="¿Cómo lo demuestra?"
+                              ></textarea>
+                            </div>
+                          </div>
+                          <div class="flex justify-end mt-2">
+                            <button
+                              type="button"
+                              class="inline-flex items-center gap-1.5 rounded px-2 py-1 text-xs text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#731514]"
+                              (click)="eliminarActividadRealizada(i, arI)"
+                              [attr.aria-label]="'Eliminar actividad realizada ' + (arI + 1)"
+                            >
+                              <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                                <line x1="2" y1="2" x2="10" y2="10"/>
+                                <line x1="10" y1="2" x2="2" y2="10"/>
+                              </svg>
+                              Eliminar
+                            </button>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  }
+
+                  <!-- + Agregar actividad realizada -->
+                  <button
+                    type="button"
+                    [class]="addBtnCls"
+                    (click)="agregarActividadRealizada(i)"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <line x1="8" y1="3" x2="8" y2="13"/>
+                      <line x1="3" y1="8" x2="13" y2="8"/>
+                    </svg>
+                    Agregar actividad realizada
+                  </button>
+                </div>
+              }
+            </li>
+          }
+        </ul>
+      }
+
+      <!-- + Agregar actividad específica -->
+      <div class="mb-8">
+        <button
+          type="button"
+          [class]="addBtnCls"
+          (click)="agregarActividad()"
+        >
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="8" y1="3" x2="8" y2="13"/>
+            <line x1="3" y1="8" x2="13" y2="8"/>
+          </svg>
+          Agregar actividad específica
+        </button>
+      </div>
+
+    }
+
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <!-- READ-ONLY MODE (PRS / AS / AP / RO)                                 -->
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    @else {
+
+      <!-- Top-level form values as plain text -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-y-4 gap-x-6 mb-6">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">Proceso</p>
+          <p class="text-sm text-gray-700">{{ proceso || '—' }}</p>
+        </div>
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">Período inicio</p>
+          <p class="text-sm text-gray-700 tabular-nums">{{ periodoInicio || '—' }}</p>
+        </div>
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">Período fin</p>
+          <p class="text-sm text-gray-700 tabular-nums">{{ periodoFin || '—' }}</p>
+        </div>
+      </div>
+
+      <!-- Read-only accordion (expandable for viewing) -->
+      @if (actividades().length > 0) {
+        <ul
+          class="space-y-3 mb-8"
+          aria-label="Actividades específicas del informe"
+        >
+          @for (act of actividades(); track $index; let i = $index) {
+            <li [class]="act.expandida ? actividadItemROExpandidaCls : actividadItemROCls">
+              <!-- Row header -->
+              <div
+                class="flex items-center gap-3 px-4 py-3 cursor-pointer select-none hover:bg-gray-50"
+                role="button"
+                [attr.aria-expanded]="act.expandida"
+                [attr.aria-label]="'Actividad ' + (i + 1) + ': ' + act.actividadEspecifica"
+                tabindex="0"
+                (click)="toggleExpand(i)"
+                (keydown.enter)="toggleExpand(i)"
+                (keydown.space)="$event.preventDefault(); toggleExpand(i)"
+              >
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-medium text-gray-700 truncate leading-snug">
+                    {{ act.actividadEspecifica || '—' }}
+                  </p>
+                </div>
+                <span
+                  class="shrink-0 text-xs font-semibold tabular-nums text-gray-500 bg-gray-100 rounded-full px-2 py-0.5"
+                  aria-label="Avance {{ act.avance }}%"
+                >{{ act.avance }}%</span>
+                <svg
+                  class="shrink-0 text-gray-400 transition-transform duration-150"
+                  [class.rotate-180]="act.expandida"
+                  width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M4 6l4 4 4-4"/>
+                </svg>
+              </div>
+
+              <!-- Expanded body (read-only) -->
+              @if (act.expandida) {
+                <div class="px-4 pt-4 pb-5 border-t border-gray-100 bg-gray-50/40 space-y-4">
+                  @if (act.actividadesRealizadas.length > 0) {
+                    @for (ar of act.actividadesRealizadas; track $index; let arI = $index) {
+                      <div
+                        class="grid grid-cols-1 md:grid-cols-3 gap-4 pb-4 border-b border-gray-100 last:border-b-0 last:pb-0"
+                      >
+                        <div>
+                          <p class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">
+                            Actividad realizada
+                          </p>
+                          <p class="text-sm text-gray-700 leading-relaxed">
+                            {{ ar.actividad || '—' }}
+                          </p>
+                        </div>
+                        <div>
+                          <p class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">
+                            Producto asociado
+                          </p>
+                          <p class="text-sm text-gray-700 leading-relaxed">
+                            {{ ar.productoAsociado || '—' }}
+                          </p>
+                        </div>
+                        <div>
+                          <p class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">
+                            Evidencia
+                          </p>
+                          <p class="text-sm text-gray-700 leading-relaxed">
+                            {{ ar.evidencia || '—' }}
+                          </p>
+                        </div>
+                      </div>
+                    }
+                  } @else {
+                    <p class="text-sm text-gray-400">Sin actividades realizadas registradas.</p>
+                  }
+                </div>
+              }
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="text-sm text-gray-400 mb-8">Sin actividades registradas en este informe.</p>
+      }
+
+    }
+
+    <!-- ── "Generar certificado" — primary button, always visible, no action ── -->
+    <div class="border-t border-gray-100 pt-5 pb-6">
+      <button
+        type="button"
+        [class]="primaryBtnCls"
+        aria-label="Generar certificado de cumplido (no disponible en prototipo)"
+      >
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M9 2H4a1 1 0 00-1 1v10a1 1 0 001 1h8a1 1 0 001-1V6L9 2z"/>
+          <polyline points="9,2 9,6 13,6"/>
+          <line x1="5" y1="9" x2="11" y2="9"/>
+          <line x1="5" y1="11.5" x2="8.5" y2="11.5"/>
+        </svg>
+        Generar certificado
+      </button>
+    </div>
+
+  </main>
+}
+
+</div>

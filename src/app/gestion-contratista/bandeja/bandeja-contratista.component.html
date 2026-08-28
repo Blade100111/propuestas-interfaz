@@ -1,0 +1,373 @@
+<div class="min-h-screen bg-gray-50">
+
+  <!-- ── Header ─────────────────────────────────────────────────────────── -->
+  <header class="border-b border-gray-200 bg-white px-4 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-7xl py-6">
+      <div>
+        <h1 class="text-xl font-bold tracking-tight text-gray-900">
+          Mis contratos
+        </h1>
+        <p class="mt-0.5 text-sm text-gray-500">
+          Julio 2025 &middot; María García &middot; C.C. 51.234.567
+        </p>
+      </div>
+
+      <!-- Urgency banner — shown after load when CD or RS contracts exist -->
+      @if (!cargando() && conteosPorEstado()['accionables']) {
+        <div class="mt-3 flex items-center gap-2.5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-900"
+             role="alert">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+               stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+               aria-hidden="true" class="shrink-0">
+            <path d="M8 2L1.5 13.5h13L8 2z"/>
+            <line x1="8" y1="6.5" x2="8" y2="9.5"/>
+            <line x1="8" y1="11.5" x2="8" y2="12"/>
+          </svg>
+          <span>
+            Tienes <strong>{{ conteosPorEstado()['accionables'] }}</strong>
+            {{ conteosPorEstado()['accionables'] === 1 ? 'contrato que requiere' : 'contratos que requieren' }}
+            tu acción este mes.
+          </span>
+        </div>
+      }
+    </div>
+  </header>
+
+  <!-- ── Tab rail ────────────────────────────────────────────────────────── -->
+  <div class="sticky top-0 z-10 border-b border-gray-200 bg-white shadow-sm">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <nav class="tab-rail -mb-px flex gap-0 overflow-x-auto"
+           role="tablist"
+           aria-label="Filtrar contratos por estado">
+        @for (tab of tabs; track tab.key) {
+          <button
+            role="tab"
+            [attr.aria-selected]="filtroActivo() === tab.key"
+            [attr.aria-controls]="'panel-' + tab.key"
+            [attr.aria-label]="tabAriaLabel(tab.key)"
+            [class]="tabClass(tab.key)"
+            (click)="seleccionarFiltro(tab.key)"
+          >
+            {{ tab.label }}
+            @if (conteosPorEstado()[tab.key]) {
+              <span [class]="badgeClass(tab.key)" aria-hidden="true">
+                {{ conteosPorEstado()[tab.key] }}
+              </span>
+            }
+          </button>
+        }
+      </nav>
+    </div>
+  </div>
+
+  <!-- ── Main ────────────────────────────────────────────────────────────── -->
+  <main class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8"
+        [attr.id]="'panel-' + filtroActivo()"
+        role="tabpanel">
+
+    <!-- Screen-reader live announcement for filter changes -->
+    <span class="sr-only" aria-live="polite" aria-atomic="true">
+      @if (!cargando()) {
+        {{ contratosFiltrados().length }}
+        {{ contratosFiltrados().length === 1 ? 'contrato' : 'contratos' }}
+        @if (filtroActivo() === 'accionables') { que requieren acción }
+        @else if (filtroActivo() !== 'todos') { en estado {{ chipLabel(filtroActivo()) }} }
+      }
+    </span>
+
+    <!-- Loading skeleton -->
+    @if (cargando()) {
+      <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
+           aria-label="Cargando contratos" aria-busy="true">
+        <!-- Skeleton header row -->
+        <div class="flex items-center gap-4 border-b border-gray-100 bg-gray-50 px-4 py-3">
+          <div class="h-2.5 w-24 animate-pulse rounded bg-gray-200"></div>
+          <div class="h-2.5 flex-1 animate-pulse rounded bg-gray-200"></div>
+          <div class="hidden h-2.5 w-28 animate-pulse rounded bg-gray-200 lg:block"></div>
+          <div class="hidden h-2.5 w-14 animate-pulse rounded bg-gray-200 lg:block"></div>
+          <div class="h-2.5 w-16 animate-pulse rounded bg-gray-200"></div>
+          <div class="h-2.5 w-24 animate-pulse rounded bg-gray-200"></div>
+          <div class="h-2.5 w-24 animate-pulse rounded bg-gray-200"></div>
+        </div>
+        @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+          <div class="flex items-center gap-4 border-b border-gray-100 px-4 py-4 last:border-0">
+            <div class="h-4 w-24 animate-pulse rounded bg-gray-100"></div>
+            <div class="h-4 flex-1 animate-pulse rounded bg-gray-100"></div>
+            <div class="hidden h-4 w-32 animate-pulse rounded bg-gray-100 lg:block"></div>
+            <div class="hidden h-4 w-12 animate-pulse rounded bg-gray-100 lg:block"></div>
+            <div class="h-4 w-14 animate-pulse rounded bg-gray-100"></div>
+            <div class="h-6 w-28 animate-pulse rounded-full bg-gray-100"></div>
+            <div class="h-8 w-28 animate-pulse rounded-md bg-gray-100"></div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Empty state -->
+    @else if (contratosFiltrados().length === 0) {
+      <div class="flex flex-col items-center justify-center rounded-xl border border-gray-200 bg-white py-20 text-center shadow-sm">
+        <div class="rounded-full bg-gray-100 p-4">
+          <svg class="h-8 w-8 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+        </div>
+        <h2 class="mt-4 text-sm font-semibold text-gray-900">Sin contratos</h2>
+        <p class="mt-1 text-sm text-gray-500">
+          No encontramos contratos
+          @if (filtroActivo() === 'accionables') {
+            que requieran tu acción
+          } @else if (filtroActivo() !== 'todos') {
+            en estado <strong>{{ chipLabel(filtroActivo()) }}</strong>
+          }
+          para este período.
+        </p>
+        @if (filtroActivo() !== 'todos') {
+          <button
+            (click)="seleccionarFiltro('todos')"
+            class="mt-5 text-sm font-semibold text-[#731514] underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#731514]"
+          >
+            Ver todos los contratos
+          </button>
+        }
+      </div>
+    }
+
+    <!-- Data: table (≥md) + cards (<md) -->
+    @else {
+
+      <!-- ── Desktop table ────────────────────────────────────────────── -->
+      <div class="hidden md:block">
+        <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+          <table class="min-w-full divide-y divide-gray-200" aria-label="Contratos del período">
+            <caption class="sr-only">
+              {{ contratosFiltrados().length }} contrato(s) —
+              @if (filtroActivo() === 'accionables') { que requieren acción }
+              @else if (filtroActivo() === 'todos') { todos los estados }
+              @else { estado: {{ chipLabel(filtroActivo()) }} }
+            </caption>
+            <thead class="bg-gray-50">
+              <tr>
+                <th scope="col"
+                    class="py-3 pl-5 pr-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                  N° Contrato
+                </th>
+                <th scope="col"
+                    class="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                  Objeto
+                </th>
+                <th scope="col"
+                    class="hidden px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 lg:table-cell">
+                  Tipo
+                </th>
+                <th scope="col"
+                    class="hidden px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 lg:table-cell">
+                  Vigencia
+                </th>
+                <th scope="col"
+                    class="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                  Mes
+                </th>
+                <th scope="col"
+                    class="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                  Estado
+                </th>
+                <th scope="col"
+                    class="py-3 pl-3 pr-5 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
+                  Acción
+                </th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 bg-white">
+              @for (contrato of contratosFiltrados(); track contrato.id) {
+                <tr class="transition-colors duration-100 hover:bg-gray-50">
+                  <!-- N° Contrato -->
+                  <td class="whitespace-nowrap py-4 pl-5 pr-3">
+                    <span class="tabular text-sm font-bold text-gray-900">
+                      {{ contrato.numeroContrato }}
+                    </span>
+                  </td>
+                  <!-- Objeto -->
+                  <td class="max-w-xs px-3 py-4">
+                    <p class="line-clamp-2 text-sm leading-snug text-gray-700">
+                      {{ contrato.objeto }}
+                    </p>
+                    @if (contrato.estado === 'RS') {
+                      <p class="mt-1 text-xs text-gray-500">
+                        Tiene observaciones del supervisor — revise en el detalle.
+                      </p>
+                    } @else if (contrato.estado === 'RO') {
+                      <p class="mt-1 text-xs text-gray-400">
+                        Rechazado por el ordenador del gasto — contacte a su supervisor.
+                      </p>
+                    }
+                  </td>
+                  <!-- Tipo -->
+                  <td class="hidden px-3 py-4 lg:table-cell">
+                    <span class="text-sm text-gray-500">{{ contrato.tipoContrato }}</span>
+                  </td>
+                  <!-- Vigencia -->
+                  <td class="hidden px-3 py-4 lg:table-cell">
+                    <span class="tabular text-sm text-gray-500">{{ contrato.vigencia }}</span>
+                  </td>
+                  <!-- Mes -->
+                  <td class="px-3 py-4">
+                    <span class="text-sm text-gray-700">{{ contrato.mes }}</span>
+                  </td>
+                  <!-- Estado chip -->
+                  <td class="px-3 py-4">
+                    <span
+                      class="inline-flex items-center justify-center min-w-[7.5rem] rounded-full px-2.5 py-0.5 text-xs font-semibold"
+                      [class]="chipClass(contrato.estado)"
+                    >
+                      {{ chipLabel(contrato.estado) }}
+                    </span>
+                  </td>
+                  <!-- Acción -->
+                  <td class="py-4 pl-3 pr-5 text-right">
+                    @if (esAccionable(contrato.estado)) {
+                      <button
+                        [class]="primaryBtnCls"
+                        (click)="verSoporte(contrato.pagoMensualId)"
+                        [attr.aria-label]="'Ver soporte — Contrato ' + contrato.numeroContrato"
+                      >
+                        Ver soporte
+                        <svg width="13" height="13" viewBox="0 0 16 16" fill="none"
+                             stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                             stroke-linejoin="round" aria-hidden="true">
+                          <path d="M6 4l4 4-4 4"/>
+                        </svg>
+                      </button>
+                    } @else {
+                      <button
+                        [class]="secondaryBtnCls"
+                        (click)="verSoporte(contrato.pagoMensualId)"
+                        [attr.aria-label]="'Ver estado — Contrato ' + contrato.numeroContrato"
+                      >
+                        Ver estado
+                        <svg width="13" height="13" viewBox="0 0 16 16" fill="none"
+                             stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                             stroke-linejoin="round" aria-hidden="true">
+                          <path d="M6 4l4 4-4 4"/>
+                        </svg>
+                      </button>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+
+          <!-- Table footer: result count -->
+          <div class="border-t border-gray-100 bg-gray-50 px-5 py-2.5">
+            <p class="text-xs text-gray-400">
+              {{ contratosFiltrados().length }}
+              @if (contratosFiltrados().length === 1) { contrato } @else { contratos }
+              @if (filtroActivo() === 'accionables') {
+                que requieren acción
+              } @else if (filtroActivo() !== 'todos') {
+                en estado <strong class="text-gray-500">{{ chipLabel(filtroActivo()) }}</strong>
+              }
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Mobile cards ─────────────────────────────────────────────── -->
+      <div class="md:hidden">
+        <ul class="space-y-3" role="list" aria-label="Contratos del período">
+          @for (contrato of contratosFiltrados(); track contrato.id) {
+            <li class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+              <div class="p-4">
+                <!-- Card header: number + chip -->
+                <div class="flex items-start justify-between gap-3">
+                  <span class="tabular text-sm font-bold text-gray-900">
+                    {{ contrato.numeroContrato }}
+                  </span>
+                  <span
+                    class="inline-flex shrink-0 items-center justify-center min-w-[7.5rem] rounded-full px-2.5 py-0.5 text-xs font-semibold"
+                    [class]="chipClass(contrato.estado)"
+                  >
+                    {{ chipLabel(contrato.estado) }}
+                  </span>
+                </div>
+
+                <!-- Object -->
+                <p class="mt-2 line-clamp-3 text-sm leading-snug text-gray-600">
+                  {{ contrato.objeto }}
+                </p>
+
+                <!-- RS / RO context line -->
+                @if (contrato.estado === 'RS') {
+                  <p class="mt-1.5 text-xs text-gray-500">
+                    Tiene observaciones del supervisor — revise en el detalle.
+                  </p>
+                } @else if (contrato.estado === 'RO') {
+                  <p class="mt-1.5 text-xs text-gray-400">
+                    Rechazado por el ordenador del gasto — contacte a su supervisor.
+                  </p>
+                }
+
+                <!-- Detail grid -->
+                <dl class="mt-3 grid grid-cols-3 gap-x-2 gap-y-2.5 border-t border-gray-100 pt-3">
+                  <div>
+                    <dt class="text-xs font-semibold uppercase tracking-wide text-gray-400">Tipo</dt>
+                    <dd class="mt-0.5 text-xs text-gray-700">{{ contrato.tipoContrato }}</dd>
+                  </div>
+                  <div>
+                    <dt class="text-xs font-semibold uppercase tracking-wide text-gray-400">Vigencia</dt>
+                    <dd class="tabular mt-0.5 text-xs text-gray-700">{{ contrato.vigencia }}</dd>
+                  </div>
+                  <div>
+                    <dt class="text-xs font-semibold uppercase tracking-wide text-gray-400">Mes</dt>
+                    <dd class="mt-0.5 text-xs text-gray-700">{{ contrato.mes }}</dd>
+                  </div>
+                </dl>
+
+                <!-- Action -->
+                <div class="mt-4">
+                  @if (esAccionable(contrato.estado)) {
+                    <button
+                      [class]="primaryBtnFullCls"
+                      (click)="verSoporte(contrato.pagoMensualId)"
+                      [attr.aria-label]="'Ver soporte — Contrato ' + contrato.numeroContrato"
+                    >
+                      Ver soporte
+                      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"
+                           stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                           stroke-linejoin="round" aria-hidden="true">
+                        <path d="M6 4l4 4-4 4"/>
+                      </svg>
+                    </button>
+                  } @else {
+                    <button
+                      [class]="secondaryBtnFullCls"
+                      (click)="verSoporte(contrato.pagoMensualId)"
+                      [attr.aria-label]="'Ver estado — Contrato ' + contrato.numeroContrato"
+                    >
+                      Ver estado
+                      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"
+                           stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                           stroke-linejoin="round" aria-hidden="true">
+                        <path d="M6 4l4 4-4 4"/>
+                      </svg>
+                    </button>
+                  }
+                </div>
+              </div>
+            </li>
+          }
+        </ul>
+
+        <!-- Mobile footer count -->
+        <p class="mt-3 text-center text-xs text-gray-400">
+          {{ contratosFiltrados().length }}
+          @if (contratosFiltrados().length === 1) { contrato } @else { contratos }
+          @if (filtroActivo() === 'accionables') { que requieren acción }
+        </p>
+      </div>
+
+    }
+
+  </main>
+</div>
