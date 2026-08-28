@@ -1,59 +1,91 @@
-# PropuestasInterfaz
+# propuestas-interfaz
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.21.
+Sandbox de propuesta de interfaz para el módulo de **cumplidos de contratistas** de la Universidad Distrital Francisco José de Caldas. Su propósito es validar flujos, pantallas y decisiones de UX antes de que el código final aterrice en `cumplidos_mf`.
 
-## Development server
+> **Nota:** todos los datos mostrados son hardcodeados. Este repositorio es desechable; el código de producción vivirá en `cumplidos_mf`.
 
-To start a local development server, run:
+---
 
-```bash
-ng serve
+## Contexto
+
+El proceso de cumplidos permite a los contratistas de la universidad reportar mensualmente las actividades ejecutadas y cargar los documentos de soporte correspondientes. El flujo involucra cuatro roles: **Contratista**, Supervisor, Ordenador del Gasto y Control Interno.
+
+Este sandbox cubre la perspectiva del **Contratista** — el primer eslabón del proceso.
+
+### Flujo implementado
+
+```
+Mis contratos → Solicitudes → Detalle soporte ⟷ Informe
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+| Pantalla | Ruta | Descripción |
+|---|---|---|
+| Mis contratos | `/gestion-contratista/contratos` | Listado de contratos activos del contratista. Búsqueda, ordenamiento, badges INICIAL / OTRO SÍ. |
+| Solicitudes | `/gestion-contratista/contratos/:numero/solicitudes` | Creación de solicitudes por mes/año. Filtro por tab (requieren atención / todos). Chips de estado. |
+| Detalle soporte | `/gestion-contratista/detalle-soporte/:id` | Carga de documentos por ítem del informe. Drag-and-drop. Editable en CD/RS; solo lectura en PRS/AS/AP/RO. |
+| Informe | `/gestion-contratista/informe/:id` | Acordeón de actividades → productos con campos de cumplimiento. Misma regla de edición que detalle soporte. |
 
-## Code scaffolding
+### Máquina de estados (`pago_mensual`)
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
+```
+CD → PRS → AS → AP
+          ↓
+         RS  (rechazo supervisor → vuelve a CD)
+     PRS → RO (rechazo ordenador)
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+| Código | Estado | Quién actúa |
+|---|---|---|
+| `CD` | Creado | Contratista carga soportes |
+| `PRS` | En revisión supervisor | Supervisor revisa |
+| `AS` | Aprobado supervisor | Pendiente ordenador |
+| `AP` | Aprobado | Proceso terminado |
+| `RS` | Rechazado supervisor | Contratista corrige |
+| `RO` | Rechazado ordenador | Proceso cerrado |
+
+---
+
+## Stack
+
+- **Angular 21** — componentes standalone, señales (`signal`, `computed`), nueva sintaxis de control de flujo (`@if` / `@for`)
+- **Tailwind CSS v4** — utilidades CSS; paleta GAIA institucional (`#731514` crimson)
+- **single-spa-angular** — ciclo de vida de micro-frontend; pensado para composición en el shell `udistrital`
+- **Vitest** — runner de tests unitarios
+
+---
+
+## Comandos
 
 ```bash
+npm start          # Servidor de desarrollo en http://localhost:4200
+npm run build      # Build de producción → dist/
+npm run watch      # Build en modo watch
+npm test           # Tests unitarios
+```
+
+Generación de artefactos Angular:
+
+```bash
+ng generate component <nombre>
+ng generate service <nombre>
 ng generate --help
 ```
 
-## Building
+---
 
-To build the project run:
+## Estructura relevante
 
-```bash
-ng build
+```
+src/app/
+└── gestion-contratista/
+    ├── contratos/          # Mis contratos
+    ├── solicitudes/        # Solicitudes por contrato
+    ├── detalle-soporte/    # Carga de documentos
+    └── informe/            # Informe de actividades
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+---
 
-## Running unit tests
+## Proyecto de producción
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+El código final de este módulo vivirá en [`cumplidos_mf`](https://github.com/udistrital/cumplidos_mf). Consultar `DIAGNOSTICO_ARQUITECTURA.md` y `MIGRATION_MAP.md` en ese repositorio para contexto de arquitectura, endpoints y decisiones de diseño.
