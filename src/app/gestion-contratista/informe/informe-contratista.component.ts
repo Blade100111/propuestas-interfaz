@@ -1,10 +1,16 @@
 import { Component, computed, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { AutoGrowDirective } from './auto-grow.directive';
+
+export interface EvidenciaItem {
+  tipo: 'texto' | 'enlace';
+  valor: string;
+}
 
 export interface ActividadRealizadaItem {
   actividad: string;
   productoAsociado: string;
-  evidencia: string;
+  evidencias: EvidenciaItem[];
   activo: boolean;
 }
 
@@ -99,8 +105,7 @@ const MOCK_INFORMES: InformeData[] = [
             actividad:
               'Atención de 23 tickets de soporte nivel 1 y 2 para los sistemas SGA y KRONOS',
             productoAsociado: 'Registro de incidencias cerradas en mesa de ayuda institucional',
-            evidencia:
-              'Capturas de pantalla de tickets cerrados; correos de confirmación de usuarios finales',
+            evidencias: [{ tipo: 'texto' as const, valor: 'Capturas de pantalla de tickets cerrados; correos de confirmación de usuarios finales' }],
             activo: true,
           },
         ],
@@ -115,7 +120,7 @@ const MOCK_INFORMES: InformeData[] = [
             actividad:
               'Elaboración de manual de procedimiento para respaldo de bases de datos PostgreSQL',
             productoAsociado: 'Manual de procedimiento v1.0 — 12 páginas',
-            evidencia: 'Documento en repositorio compartido con el supervisor el 22 jul 2025',
+            evidencias: [{ tipo: 'texto' as const, valor: 'Documento en repositorio compartido con el supervisor el 22 jul 2025' }],
             activo: true,
           },
         ],
@@ -148,8 +153,7 @@ const MOCK_INFORMES: InformeData[] = [
             actividad:
               'Atención de 18 tickets de soporte nivel 1 y 2 para los sistemas SGA y KRONOS',
             productoAsociado: 'Registro de incidencias cerradas en mesa de ayuda institucional',
-            evidencia:
-              'Capturas de pantalla de tickets cerrados; correos de confirmación de usuarios finales',
+            evidencias: [{ tipo: 'texto' as const, valor: 'Capturas de pantalla de tickets cerrados; correos de confirmación de usuarios finales' }],
             activo: true,
           },
         ],
@@ -182,8 +186,7 @@ const MOCK_INFORMES: InformeData[] = [
             actividad:
               'Atención de 21 tickets de soporte nivel 1 y 2 para los sistemas SGA y KRONOS',
             productoAsociado: 'Registro de incidencias cerradas en mesa de ayuda institucional',
-            evidencia:
-              'Capturas de pantalla de tickets cerrados; correos de confirmación de usuarios finales',
+            evidencias: [{ tipo: 'texto' as const, valor: 'Capturas de pantalla de tickets cerrados; correos de confirmación de usuarios finales' }],
             activo: true,
           },
         ],
@@ -198,7 +201,7 @@ const MOCK_INFORMES: InformeData[] = [
             actividad:
               'Elaboración de manual de procedimiento para restauración de base de datos ante fallos',
             productoAsociado: 'Manual de restauración v1.0 — 8 páginas',
-            evidencia: 'Documento en repositorio compartido con el supervisor el 28 may 2025',
+            evidencias: [{ tipo: 'texto' as const, valor: 'Documento en repositorio compartido con el supervisor el 28 may 2025' }],
             activo: true,
           },
         ],
@@ -231,8 +234,7 @@ const MOCK_INFORMES: InformeData[] = [
             actividad:
               'Atención de 19 tickets de soporte nivel 1 y 2 para los sistemas SGA y KRONOS',
             productoAsociado: 'Registro de incidencias cerradas en mesa de ayuda institucional',
-            evidencia:
-              'Capturas de pantalla de tickets cerrados; correos de confirmación de usuarios finales',
+            evidencias: [{ tipo: 'texto' as const, valor: 'Capturas de pantalla de tickets cerrados; correos de confirmación de usuarios finales' }],
             activo: true,
           },
         ],
@@ -265,8 +267,7 @@ const MOCK_INFORMES: InformeData[] = [
             actividad:
               'Atención de 25 tickets de soporte nivel 1 y 2 para los sistemas SGA, KRONOS y ARGO',
             productoAsociado: 'Registro de incidencias cerradas en mesa de ayuda institucional',
-            evidencia:
-              'Capturas de pantalla de tickets cerrados; correos de confirmación de usuarios finales',
+            evidencias: [{ tipo: 'texto' as const, valor: 'Capturas de pantalla de tickets cerrados; correos de confirmación de usuarios finales' }],
             activo: true,
           },
         ],
@@ -281,7 +282,7 @@ const MOCK_INFORMES: InformeData[] = [
             actividad:
               'Elaboración de guía de configuración de ambientes de desarrollo y pruebas para el equipo de sistemas',
             productoAsociado: 'Guía de configuración v1.0 — 15 páginas',
-            evidencia: 'Documento en repositorio compartido con el supervisor el 27 mar 2025',
+            evidencias: [{ tipo: 'texto' as const, valor: 'Documento en repositorio compartido con el supervisor el 27 mar 2025' }],
             activo: true,
           },
         ],
@@ -314,8 +315,7 @@ const MOCK_INFORMES: InformeData[] = [
             actividad:
               'Atención de 16 tickets de soporte nivel 1 y 2 para los sistemas SGA y KRONOS',
             productoAsociado: 'Registro de incidencias cerradas en mesa de ayuda institucional',
-            evidencia:
-              'Capturas de pantalla de tickets cerrados; correos de confirmación de usuarios finales',
+            evidencias: [{ tipo: 'texto' as const, valor: 'Capturas de pantalla de tickets cerrados; correos de confirmación de usuarios finales' }],
             activo: true,
           },
         ],
@@ -327,7 +327,7 @@ const MOCK_INFORMES: InformeData[] = [
 @Component({
   selector: 'app-informe-contratista',
   standalone: true,
-  imports: [],
+  imports: [AutoGrowDirective],
   templateUrl: './informe-contratista.component.html',
 })
 export class InformeContratistaComponent {
@@ -345,7 +345,7 @@ export class InformeContratistaComponent {
     'block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 shadow-sm transition-colors duration-150 focus:border-[#731514] focus:outline-none focus:ring-2 focus:ring-[#731514]/30';
 
   readonly textareaCls =
-    'block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 shadow-sm resize-y min-h-[5rem] transition-colors duration-150 focus:border-[#731514] focus:outline-none focus:ring-2 focus:ring-[#731514]/30';
+    'block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 shadow-sm resize-none overflow-y-auto max-h-[24rem] transition-colors duration-150 focus:border-[#731514] focus:outline-none focus:ring-2 focus:ring-[#731514]/30';
 
   readonly selectCls =
     'block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm transition-colors duration-150 focus:border-[#731514] focus:outline-none focus:ring-2 focus:ring-[#731514]/30';
@@ -355,6 +355,15 @@ export class InformeContratistaComponent {
 
   readonly deleteBtnCls =
     'inline-flex items-center justify-center w-7 h-7 rounded text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#731514]';
+
+  readonly evidToggleContainerCls =
+    'inline-flex shrink-0 rounded-md border border-gray-200 bg-gray-50 p-0.5';
+  readonly evidToggleActivoTextoCls =
+    'rounded px-2 py-0.5 text-xs font-semibold bg-white text-gray-900 shadow-sm transition-colors duration-100';
+  readonly evidToggleActivoEnlaceCls =
+    'rounded px-2 py-0.5 text-xs font-semibold bg-white text-[#731514] shadow-sm transition-colors duration-100';
+  readonly evidToggleInactivoCls =
+    'rounded px-2 py-0.5 text-xs font-medium text-gray-500 hover:text-gray-700 transition-colors duration-100';
 
   // Activity accordion — card styles. Editable items are self-contained cards with gap between them.
   // Expanded editable card gets crimson tint bg; left border accent is applied via inline style binding.
@@ -505,7 +514,7 @@ export class InformeContratistaComponent {
               ...a,
               actividadesRealizadas: [
                 ...a.actividadesRealizadas,
-                { actividad: '', productoAsociado: '', evidencia: '', activo: true },
+                { actividad: '', productoAsociado: '', evidencias: [], activo: true },
               ],
             },
       ),
@@ -522,11 +531,36 @@ export class InformeContratistaComponent {
     );
   }
 
+  // ── Level 2 reordering ────────────────────────────────────────────────────
+  moverArribaRealizada(actIndex: number, arIndex: number): void {
+    if (arIndex === 0) return;
+    this.actividades.update((list) =>
+      list.map((a, i) => {
+        if (i !== actIndex) return a;
+        const rs = [...a.actividadesRealizadas];
+        [rs[arIndex - 1], rs[arIndex]] = [rs[arIndex], rs[arIndex - 1]];
+        return { ...a, actividadesRealizadas: rs };
+      }),
+    );
+  }
+
+  moverAbajoRealizada(actIndex: number, arIndex: number): void {
+    this.actividades.update((list) =>
+      list.map((a, i) => {
+        if (i !== actIndex) return a;
+        if (arIndex >= a.actividadesRealizadas.length - 1) return a;
+        const rs = [...a.actividadesRealizadas];
+        [rs[arIndex], rs[arIndex + 1]] = [rs[arIndex + 1], rs[arIndex]];
+        return { ...a, actividadesRealizadas: rs };
+      }),
+    );
+  }
+
   // ── Level 2 field updates ─────────────────────────────────────────────────
   onActividadRealizadaInput(
     actIndex: number,
     arIndex: number,
-    field: 'actividad' | 'productoAsociado' | 'evidencia',
+    field: 'actividad' | 'productoAsociado',
     event: Event,
   ): void {
     const value = (event.target as HTMLTextAreaElement).value;
@@ -541,6 +575,78 @@ export class InformeContratistaComponent {
               ),
             },
       ),
+    );
+  }
+
+  // ── Level 3 — Evidencias CRUD & updates ──────────────────────────────────
+  agregarEvidencia(actIndex: number, arIndex: number): void {
+    this.actividades.update((list) =>
+      list.map((a, i) => {
+        if (i !== actIndex) return a;
+        return {
+          ...a,
+          actividadesRealizadas: a.actividadesRealizadas.map((ar, j) =>
+            j !== arIndex
+              ? ar
+              : { ...ar, evidencias: [...ar.evidencias, { tipo: 'texto' as const, valor: '' }] },
+          ),
+        };
+      }),
+    );
+  }
+
+  eliminarEvidencia(actIndex: number, arIndex: number, evIndex: number): void {
+    this.actividades.update((list) =>
+      list.map((a, i) => {
+        if (i !== actIndex) return a;
+        return {
+          ...a,
+          actividadesRealizadas: a.actividadesRealizadas.map((ar, j) =>
+            j !== arIndex
+              ? ar
+              : { ...ar, evidencias: ar.evidencias.filter((_, k) => k !== evIndex) },
+          ),
+        };
+      }),
+    );
+  }
+
+  onEvidenciaTipo(actIndex: number, arIndex: number, evIndex: number, tipo: 'texto' | 'enlace'): void {
+    this.actividades.update((list) =>
+      list.map((a, i) => {
+        if (i !== actIndex) return a;
+        return {
+          ...a,
+          actividadesRealizadas: a.actividadesRealizadas.map((ar, j) =>
+            j !== arIndex
+              ? ar
+              : {
+                  ...ar,
+                  evidencias: ar.evidencias.map((ev, k) => k !== evIndex ? ev : { ...ev, tipo }),
+                },
+          ),
+        };
+      }),
+    );
+  }
+
+  onEvidenciaValor(actIndex: number, arIndex: number, evIndex: number, event: Event): void {
+    const valor = (event.target as HTMLInputElement).value;
+    this.actividades.update((list) =>
+      list.map((a, i) => {
+        if (i !== actIndex) return a;
+        return {
+          ...a,
+          actividadesRealizadas: a.actividadesRealizadas.map((ar, j) =>
+            j !== arIndex
+              ? ar
+              : {
+                  ...ar,
+                  evidencias: ar.evidencias.map((ev, k) => k !== evIndex ? ev : { ...ev, valor }),
+                },
+          ),
+        };
+      }),
     );
   }
 
