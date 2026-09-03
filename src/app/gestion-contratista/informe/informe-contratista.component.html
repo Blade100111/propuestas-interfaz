@@ -361,15 +361,44 @@
                         <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">Actividades realizadas</p>
                       </div>
                       @for (ar of act.actividadesRealizadas; track $index; let arI = $index) {
-                        <div class="rounded-lg border border-gray-200 bg-white px-4 py-3">
-                          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div class="rounded-lg border border-gray-200 bg-white px-3 py-3 flex items-start gap-2">
+                          <!-- ↑ / ↓ reorder buttons for level-2 -->
+                          <div class="flex flex-col gap-0.5 shrink-0 mt-1">
+                            <button
+                              type="button"
+                              [class]="iconBtnCls"
+                              [disabled]="arI === 0"
+                              [attr.aria-disabled]="arI === 0"
+                              (click)="moverArribaRealizada(i, arI)"
+                              aria-label="Mover actividad realizada arriba"
+                            >
+                              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <polyline points="2,7 5,3 8,7"/>
+                              </svg>
+                            </button>
+                            <button
+                              type="button"
+                              [class]="iconBtnCls"
+                              [disabled]="arI === act.actividadesRealizadas.length - 1"
+                              [attr.aria-disabled]="arI === act.actividadesRealizadas.length - 1"
+                              (click)="moverAbajoRealizada(i, arI)"
+                              aria-label="Mover actividad realizada abajo"
+                            >
+                              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <polyline points="2,3 5,7 8,3"/>
+                              </svg>
+                            </button>
+                          </div>
+                          <div class="flex-1 min-w-0">
+                          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                             <div>
                               <label [class]="labelCls" [attr.for]="'ar-actividad-' + i + '-' + arI">
                                 Actividad realizada
                               </label>
                               <textarea
+                                [appAutoGrow]="ar.actividad"
                                 [id]="'ar-actividad-' + i + '-' + arI"
-                                rows="3"
+                                rows="1"
                                 maxlength="1000"
                                 [class]="textareaCls"
                                 [value]="ar.actividad"
@@ -382,8 +411,9 @@
                                 Producto asociado
                               </label>
                               <textarea
+                                [appAutoGrow]="ar.productoAsociado"
                                 [id]="'ar-producto-' + i + '-' + arI"
-                                rows="3"
+                                rows="1"
                                 maxlength="250"
                                 [class]="textareaCls"
                                 [value]="ar.productoAsociado"
@@ -391,20 +421,66 @@
                                 placeholder="¿Qué entregó?"
                               ></textarea>
                             </div>
-                            <div>
-                              <label [class]="labelCls" [attr.for]="'ar-evidencia-' + i + '-' + arI">
-                                Evidencia
-                              </label>
-                              <textarea
-                                [id]="'ar-evidencia-' + i + '-' + arI"
-                                rows="3"
-                                maxlength="1000"
-                                [class]="textareaCls"
-                                [value]="ar.evidencia"
-                                (input)="onActividadRealizadaInput(i, arI, 'evidencia', $event)"
-                                placeholder="¿Cómo lo demuestra?"
-                              ></textarea>
-                            </div>
+                          </div>
+                          <!-- Evidencias — lista repetible con tipo toggle -->
+                          <div class="mb-1">
+                            <p [class]="labelCls">Evidencias</p>
+                            @if (ar.evidencias.length > 0) {
+                              <div class="space-y-1.5 mb-2">
+                                @for (ev of ar.evidencias; track $index; let evI = $index) {
+                                  <div class="flex items-start gap-2">
+                                    <!-- Toggle Texto / Enlace -->
+                                    <div [class]="evidToggleContainerCls">
+                                      <button
+                                        type="button"
+                                        [class]="ev.tipo === 'texto' ? evidToggleActivoTextoCls : evidToggleInactivoCls"
+                                        (click)="onEvidenciaTipo(i, arI, evI, 'texto')"
+                                        aria-label="Tipo texto plano"
+                                      >Texto</button>
+                                      <button
+                                        type="button"
+                                        [class]="ev.tipo === 'enlace' ? evidToggleActivoEnlaceCls : evidToggleInactivoCls"
+                                        (click)="onEvidenciaTipo(i, arI, evI, 'enlace')"
+                                        aria-label="Tipo enlace"
+                                      >Enlace</button>
+                                    </div>
+                                    <!-- Valor -->
+                                    <textarea
+                                      [appAutoGrow]="ev.valor"
+                                      rows="1"
+                                      maxlength="1000"
+                                      [class]="textareaCls"
+                                      [value]="ev.valor"
+                                      [placeholder]="ev.tipo === 'enlace' ? 'https://...' : 'Descripción de la evidencia'"
+                                      (input)="onEvidenciaValor(i, arI, evI, $event)"
+                                    ></textarea>
+                                    <!-- × eliminar -->
+                                    <button
+                                      type="button"
+                                      [class]="deleteBtnCls"
+                                      (click)="eliminarEvidencia(i, arI, evI)"
+                                      [attr.aria-label]="'Eliminar evidencia ' + (evI + 1)"
+                                    >
+                                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                                        <line x1="2" y1="2" x2="10" y2="10"/>
+                                        <line x1="10" y1="2" x2="2" y2="10"/>
+                                      </svg>
+                                    </button>
+                                  </div>
+                                }
+                              </div>
+                            }
+                            <button
+                              type="button"
+                              [class]="addBtnCls"
+                              (click)="agregarEvidencia(i, arI)"
+                            >
+                              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <line x1="8" y1="3" x2="8" y2="13"/>
+                                <line x1="3" y1="8" x2="13" y2="8"/>
+                              </svg>
+                              Agregar evidencia
+                            </button>
                           </div>
                           <div class="flex justify-end mt-2">
                             <button
@@ -420,6 +496,7 @@
                               Eliminar
                             </button>
                           </div>
+                          </div><!-- /flex-1 -->
                         </div>
                       }
                     </div>
@@ -546,11 +623,25 @@
                         </div>
                         <div>
                           <p class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">
-                            Evidencia
+                            Evidencias
                           </p>
-                          <p class="text-sm text-gray-700 leading-relaxed">
-                            {{ ar.evidencia || '—' }}
-                          </p>
+                          @if (ar.evidencias.length > 0) {
+                            <ul class="space-y-1">
+                              @for (ev of ar.evidencias; track $index) {
+                                <li class="flex items-start gap-1.5 text-sm text-gray-700 leading-relaxed">
+                                  <span class="mt-1.5 shrink-0 inline-block w-1 h-1 rounded-full bg-gray-400" aria-hidden="true"></span>
+                                  @if (ev.tipo === 'enlace') {
+                                    <a [href]="ev.valor" target="_blank" rel="noopener noreferrer"
+                                       class="text-[#731514] underline break-all">{{ ev.valor || '—' }}</a>
+                                  } @else {
+                                    <span>{{ ev.valor || '—' }}</span>
+                                  }
+                                </li>
+                              }
+                            </ul>
+                          } @else {
+                            <p class="text-sm text-gray-400">—</p>
+                          }
                         </div>
                       </div>
                     }

@@ -134,11 +134,7 @@ export class ContratosContratistaComponent {
     const q = this.busqueda().toLowerCase().trim();
     let list = this.contratos();
     if (q) {
-      list = list.filter(
-        (c) =>
-          c.numeroContratoSuscrito.toLowerCase().includes(q) ||
-          c.nombreDependencia.toLowerCase().includes(q),
-      );
+      list = list.filter((c) => c.numeroContratoSuscrito.toLowerCase().includes(q));
     }
     const col = this.sortColumn();
     const dir = this.sortDirection() === 'asc' ? 1 : -1;
