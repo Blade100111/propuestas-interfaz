@@ -19,20 +19,14 @@
  *   donde 'logo_ud' es una clave del objeto `images` del docDefinition.
  */
 
-import { createPdf, addFonts } from 'pdfmake';
+// Default import preserves `this` binding on pdfmake class instance methods.
+// Named-export destructuring (`import { createPdf, addFonts } from 'pdfmake'`)
+// detaches methods from the instance, causing TypeError at module evaluation time
+// because addFonts/createPdf use `this` internally.
+import pdfMake from 'pdfmake';
 
 import type { InformeData, ActividadItem } from './informe-contratista.component';
 import type { DetalleContrato } from '../detalle-soporte/detalle-soporte-contratista.component';
-
-// ── Fuentes: Helvetica es fuente estándar PDF (Type1); no requiere VFS. ───────
-addFonts({
-  Helvetica: {
-    normal:      'Helvetica',
-    bold:        'Helvetica-Bold',
-    italics:     'Helvetica-Oblique',
-    bolditalics: 'Helvetica-BoldOblique',
-  },
-});
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -133,6 +127,17 @@ export function generarCertificadoPDF(
   actividades: ActividadItem[],
 ): void {
   const supervisor = detalle?.supervisor ?? '—';
+
+  // Helvetica es fuente estándar PDF (Type1); no requiere VFS.
+  // Llamada aquí (no en módulo top-level) para garantizar que pdfMake está listo.
+  pdfMake.addFonts({
+    Helvetica: {
+      normal:      'Helvetica',
+      bold:        'Helvetica-Bold',
+      italics:     'Helvetica-Oblique',
+      bolditalics: 'Helvetica-BoldOblique',
+    },
+  });
 
   // Se tipea como 'any' para evitar la complejidad del tipo TDocumentDefinitions
   // (que @types/pdfmake no re-exporta). La estructura sí es correcta según la spec.
@@ -374,5 +379,5 @@ export function generarCertificadoPDF(
   };
 
   const filename = `certificado-cumplido-${informe.numeroContrato.replace('/', '-')}-${informe.mes}-${informe.ano}.pdf`;
-  createPdf(docDefinition).download(filename);
+  pdfMake.createPdf(docDefinition).download(filename);
 }
