@@ -659,12 +659,14 @@
 
     }
 
-    <!-- ── "Generar certificado" — primary button, always visible, no action ── -->
+    <!-- ── "Generar certificado" — descarga el PDF del informe ── -->
     <div class="border-t border-gray-100 pt-5 pb-6">
       <button
         type="button"
         [class]="primaryBtnCls"
-        aria-label="Generar certificado de cumplido (no disponible en prototipo)"
+        (click)="generarCertificado()"
+        [disabled]="cargando() || !contrato()"
+        aria-label="Generar y descargar el certificado de cumplido en PDF"
       >
         <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M9 2H4a1 1 0 00-1 1v10a1 1 0 001 1h8a1 1 0 001-1V6L9 2z"/>

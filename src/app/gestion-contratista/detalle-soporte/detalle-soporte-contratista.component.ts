@@ -43,7 +43,8 @@ const ESTADO_CONFIG: Record<string, EstadoConfig> = {
 
 // Hardcoded mock — 6 rows, all belonging to contract 789-2025, one per month.
 // pagoMensualId values are shared with solicitudes-contratista + informe components.
-const MOCK_DETALLES: DetalleContrato[] = [
+// Exported so the informe component can cross-reference supervisor info for the PDF.
+export const MOCK_DETALLES: DetalleContrato[] = [
   {
     pagoMensualId: 1001,
     numeroContrato: '789-2025',

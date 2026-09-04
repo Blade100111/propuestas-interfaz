@@ -1,6 +1,8 @@
 import { Component, computed, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AutoGrowDirective } from './auto-grow.directive';
+import { MOCK_DETALLES } from '../detalle-soporte/detalle-soporte-contratista.component';
+import { generarCertificadoPDF } from './generar-certificado';
 
 export interface EvidenciaItem {
   tipo: 'texto' | 'enlace';
@@ -22,12 +24,7 @@ export interface ActividadItem {
   actividadesRealizadas: ActividadRealizadaItem[];
 }
 
-interface EstadoConfig {
-  label: string;
-  chipClass: string;
-}
-
-interface InformeData {
+export interface InformeData {
   pagoMensualId: number;
   numeroContrato: string;
   mes: string;
@@ -41,6 +38,11 @@ interface InformeData {
   periodoInformeInicio: string;
   periodoInformeFin: string;
   actividades: ActividadItem[];
+}
+
+interface EstadoConfig {
+  label: string;
+  chipClass: string;
 }
 
 const ESTADO_CONFIG: Record<string, EstadoConfig> = {
@@ -647,6 +649,21 @@ export class InformeContratistaComponent {
           ),
         };
       }),
+    );
+  }
+
+  // ── PDF ───────────────────────────────────────────────────────────────────
+  generarCertificado(): void {
+    const informe = this.contrato();
+    if (!informe) return;
+    const detalle = MOCK_DETALLES.find((d) => d.pagoMensualId === this.pagoMensualId) ?? null;
+    generarCertificadoPDF(
+      informe,
+      detalle,
+      this.proceso,
+      this.periodoInicio,
+      this.periodoFin,
+      this.actividades(),
     );
   }
 
