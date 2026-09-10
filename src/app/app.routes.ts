@@ -49,6 +49,13 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'gestion-ordenador/reversion',
+    loadComponent: () =>
+      import('./gestion-ordenador/reversion/reversion-ordenador.component').then(
+        (m) => m.ReversionOrdenadorComponent,
+      ),
+  },
+  {
     path: '**',
     redirectTo: 'gestion-contratista/contratos',
   },

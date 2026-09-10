@@ -33,6 +33,7 @@ export class SoportesPanelComponent {
   readonly rechazar = output<number>();
 
   readonly actionableEstados = input<string[]>(['PRS']);
+  readonly panelReadonly = input<boolean>(false);
 
   readonly abierto = computed(() => this.item() !== null);
   readonly esAccionable = computed(() => {
