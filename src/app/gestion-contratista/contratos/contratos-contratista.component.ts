@@ -1,5 +1,15 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import { EmptyStateComponent } from '../../shared/components/empty-state.component';
+import { SearchInputComponent } from '../../shared/components/search-input.component';
+import {
+  DataTableComponent,
+  TableCardDirective,
+  TableColumn,
+  TableRowDirective,
+} from '../../shared/components/data-table.component';
+import { SessionService } from '../../shared/services/session.service';
+import { MAIN_WIDE, HDR_WIDE } from '../../shared/layout';
 
 type SortCol = 'numero' | 'vigencia' | 'tipo' | 'dependencia';
 
@@ -101,10 +111,16 @@ const MOCK_CONTRATOS: ContratoItem[] = [
 @Component({
   selector: 'app-contratos-contratista',
   standalone: true,
-  imports: [],
+  imports: [EmptyStateComponent, SearchInputComponent, DataTableComponent, TableRowDirective, TableCardDirective],
   templateUrl: './contratos-contratista.component.html',
 })
 export class ContratosContratistaComponent {
+  protected readonly session = inject(SessionService);
+
+  // ── Layout ────────────────────────────────────────────────────────────────
+  readonly mainCls = MAIN_WIDE;
+  readonly hdrCls = HDR_WIDE;
+
   // ── Literal class strings — TW scanner requires these to be literals ──────
   readonly primaryBtnCls =
     'inline-flex items-center gap-1.5 rounded-md bg-[#731514] px-3 py-1.5 text-sm font-semibold text-white shadow-sm transition-colors duration-150 hover:bg-[#5e1212] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#731514]';
@@ -118,10 +134,68 @@ export class ContratosContratistaComponent {
     'transition-colors duration-100 hover:bg-[#731514]/5';
   readonly rowOtroSiCls =
     'bg-gray-50/50 transition-colors duration-100 hover:bg-[#731514]/5';
-  readonly searchInputCls =
-    'block w-full rounded-lg border border-gray-200 bg-white py-2 pl-9 pr-3 text-sm text-gray-900 placeholder-gray-400 shadow-sm transition-colors duration-150 focus:border-[#731514] focus:outline-none focus:ring-2 focus:ring-[#731514]/20';
-  readonly sortBtnCls =
-    'flex w-full items-center justify-center gap-1 text-xs font-semibold uppercase tracking-wider text-gray-500 hover:text-gray-900 transition-colors duration-150 focus-visible:outline-none';
+
+  // ── Column definitions for DataTableComponent ─────────────────────────────
+  // skHdr / skCell deben ser literales aquí para que el scanner de Tailwind
+  // los incluya en el bundle (los usa DataTableComponent vía [class] dinámico).
+  readonly tableColumns: TableColumn[] = [
+    {
+      key: 'numero',
+      header: 'N° Contrato',
+      sortable: true,
+      thClass: 'w-36 py-3 pl-5 pr-3 text-center',
+      skHdr: 'h-2.5 w-28 animate-pulse rounded bg-gray-200',
+      skCell: 'h-4 w-24 animate-pulse rounded bg-gray-100',
+    },
+    {
+      key: 'vigencia',
+      header: 'Vigencia',
+      sortable: true,
+      thClass: 'w-20 px-3 py-3 text-center',
+      skHdr: 'h-2.5 w-14 animate-pulse rounded bg-gray-200',
+      skCell: 'h-4 w-12 animate-pulse rounded bg-gray-100',
+    },
+    {
+      key: 'tipo',
+      header: 'Tipo',
+      sortable: true,
+      thClass: 'w-36 px-3 py-3 text-center',
+      skHdr: 'h-2.5 w-20 animate-pulse rounded bg-gray-200',
+      skCell: 'h-5 w-20 animate-pulse rounded-full bg-gray-100',
+    },
+    {
+      key: 'rp',
+      header: 'RP',
+      sortable: false,
+      thClass: 'hidden w-24 px-3 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500 lg:table-cell',
+      skHdr: 'hidden h-2.5 w-14 animate-pulse rounded bg-gray-200 lg:block',
+      skCell: 'hidden h-4 w-14 animate-pulse rounded bg-gray-100 lg:block',
+    },
+    {
+      key: 'cdp',
+      header: 'CDP',
+      sortable: false,
+      thClass: 'hidden w-24 px-3 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500 lg:table-cell',
+      skHdr: 'hidden h-2.5 w-14 animate-pulse rounded bg-gray-200 lg:block',
+      skCell: 'hidden h-4 w-14 animate-pulse rounded bg-gray-100 lg:block',
+    },
+    {
+      key: 'dependencia',
+      header: 'Dependencia',
+      sortable: true,
+      thClass: 'w-56 px-3 py-3 text-center',
+      skHdr: 'h-2.5 flex-1 animate-pulse rounded bg-gray-200',
+      skCell: 'h-4 flex-1 animate-pulse rounded bg-gray-100',
+    },
+    {
+      key: 'accion',
+      header: 'Acción',
+      sortable: false,
+      thClass: 'w-44 py-3 px-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500',
+      skHdr: 'h-2.5 w-28 animate-pulse rounded bg-gray-200',
+      skCell: 'h-8 w-36 animate-pulse rounded-md bg-gray-100',
+    },
+  ];
 
   // ── State ─────────────────────────────────────────────────────────────────
   readonly cargando = signal(true);
@@ -150,6 +224,27 @@ export class ContratosContratistaComponent {
     return list;
   });
 
+  // Footer text para DataTableComponent.
+  // Desktop: incluye "filtrando N totales" cuando hay búsqueda activa.
+  // Mobile: solo el conteo (sin la parte de filtrando).
+  readonly footerText = computed(() => {
+    const n = this.contratosFiltrados().length;
+    let txt = `${n} ${n === 1 ? 'contrato activo' : 'contratos activos'}`;
+    if (this.busqueda().trim()) {
+      txt += ` \u2014 filtrando ${this.contratos().length} totales`;
+    }
+    return txt;
+  });
+
+  readonly mobileFooterText = computed(() => {
+    const n = this.contratosFiltrados().length;
+    return `${n} ${n === 1 ? 'contrato activo' : 'contratos activos'}`;
+  });
+
+  // Función de clase de fila — OtroSí tiene fondo diferenciado.
+  readonly contratoRowClass = (row: ContratoItem): string =>
+    row.esOtroSi ? this.rowOtroSiCls : this.rowNormalCls;
+
   constructor(private readonly router: Router) {
     setTimeout(() => this.cargando.set(false), 1100);
   }
@@ -159,26 +254,14 @@ export class ContratosContratistaComponent {
     return contrato.esOtroSi ? this.tipoBadgeOtroSiCls : this.tipoBadgeInicialCls;
   }
 
-  rowClass(contrato: ContratoItem): string {
-    return contrato.esOtroSi ? this.rowOtroSiCls : this.rowNormalCls;
-  }
-
-  setBusqueda(event: Event): void {
-    this.busqueda.set((event.target as HTMLInputElement).value);
-  }
-
-  sortBy(col: SortCol): void {
-    if (this.sortColumn() === col) {
+  sortBy(col: string): void {
+    const sortCol = col as SortCol;
+    if (this.sortColumn() === sortCol) {
       this.sortDirection.update((d) => (d === 'asc' ? 'desc' : 'asc'));
     } else {
-      this.sortColumn.set(col);
+      this.sortColumn.set(sortCol);
       this.sortDirection.set('asc');
     }
-  }
-
-  sortIcon(col: SortCol): string {
-    if (this.sortColumn() !== col) return '↕';
-    return this.sortDirection() === 'asc' ? '↑' : '↓';
   }
 
   // ESQUEMA TEMPORAL: NumeroCdp + VigenciaCdp como query params porque el endpoint

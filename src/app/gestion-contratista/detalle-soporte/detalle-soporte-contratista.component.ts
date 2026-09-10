@@ -1,5 +1,7 @@
 import { Component, ElementRef, ViewChild, computed, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { EstadoChipComponent } from '../../shared/components/estado-chip.component';
+import { MAIN_NARROW, HDR_NARROW } from '../../shared/layout';
 
 export interface SoporteDoc {
   nombre: string;
@@ -27,19 +29,6 @@ export interface StagedFile {
   error?: string;
 }
 
-interface EstadoConfig {
-  label: string;
-  chipClass: string;
-}
-
-const ESTADO_CONFIG: Record<string, EstadoConfig> = {
-  CD:  { label: 'Creado',           chipClass: 'bg-[#FF9311] text-gray-900' },
-  PRS: { label: 'En revisión',      chipClass: 'bg-[#FFB051] text-gray-900' },
-  AS:  { label: 'Aprobado Sup.',    chipClass: 'bg-[#218B22] text-white'    },
-  AP:  { label: 'Aprobado',         chipClass: 'bg-[#218B22] text-white'    },
-  RS:  { label: 'Rechazado Sup.',   chipClass: 'bg-[#930E10] text-white'    },
-  RO:  { label: 'Rechazado Ord.',   chipClass: 'bg-gray-500 text-white'     },
-};
 
 // Hardcoded mock — 6 rows, all belonging to contract 789-2025, one per month.
 // pagoMensualId values are shared with solicitudes-contratista + informe components.
@@ -158,10 +147,14 @@ const MAX_FILE_MB = 1; // confirmed: maxFileSize: 1000 KB / fileModel.size <= 10
 @Component({
   selector: 'app-detalle-soporte-contratista',
   standalone: true,
-  imports: [],
+  imports: [EstadoChipComponent],
   templateUrl: './detalle-soporte-contratista.component.html',
 })
 export class DetalleSoporteContratistaComponent {
+  // ── Layout ────────────────────────────────────────────────────────────────
+  readonly mainCls = MAIN_NARROW;
+  readonly hdrCls  = HDR_NARROW;
+
   // ── Literal class strings — TW scanner must see these at build time ────────
   readonly backBtnCls =
     'inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#731514] rounded';
@@ -244,16 +237,6 @@ export class DetalleSoporteContratistaComponent {
       );
       this.cargando.set(false);
     }, 900);
-  }
-
-  // ── Helpers ───────────────────────────────────────────────────────────────
-  chipClass(estado: string): string {
-    const color = ESTADO_CONFIG[estado]?.chipClass ?? 'bg-gray-300 text-gray-800';
-    return `${color} inline-flex items-center justify-center min-w-[7.5rem] rounded-full px-2.5 py-0.5 text-xs font-semibold`;
-  }
-
-  chipLabel(estado: string): string {
-    return ESTADO_CONFIG[estado]?.label ?? estado;
   }
 
   // ── File handling ─────────────────────────────────────────────────────────

@@ -6,8 +6,8 @@
 
 <!-- ── Skeleton loader ── -->
 @if (cargando()) {
-  <div class="animate-pulse border-b border-gray-200 bg-white px-4 sm:px-6">
-    <div class="mx-auto max-w-3xl py-6">
+  <div class="animate-pulse border-b border-gray-200 bg-white px-4 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-7xl py-6">
       <div class="h-4 w-36 rounded bg-gray-200 mb-3"></div>
       <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <div class="h-7 w-56 rounded bg-gray-200"></div>
@@ -16,7 +16,7 @@
     </div>
   </div>
   <div
-    class="mx-auto max-w-3xl px-4 py-6 sm:px-6 animate-pulse"
+    class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 animate-pulse"
     aria-busy="true"
     aria-label="Cargando informe de gestión"
   >
@@ -65,8 +65,8 @@
 
 <!-- ── Main content ── -->
 @else {
-  <header class="border-b border-gray-200 bg-white px-4 sm:px-6">
-    <div class="mx-auto max-w-3xl py-6">
+  <header class="border-b border-gray-200 bg-white px-4 sm:px-6 lg:px-8">
+    <div [class]="hdrCls">
       <button
         [class]="backBtnCls"
         (click)="volver()"
@@ -81,29 +81,32 @@
         <h1 class="text-xl font-bold tracking-tight text-gray-900">
           Informe &mdash; Contrato {{ contrato()!.numeroContrato }}
         </h1>
-        <span
-          [class]="chipClass(contrato()!.estado)"
-          [attr.aria-label]="'Estado: ' + chipLabel(contrato()!.estado)"
-        >{{ chipLabel(contrato()!.estado) }}</span>
+        <app-estado-chip [estado]="contrato()!.estado" />
       </div>
     </div>
   </header>
-  <main class="mx-auto max-w-3xl px-4 py-6 sm:px-6">
+  <main [class]="mainCls">
 
     <!-- ── Context card (always read-only) ── -->
     <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm mb-5">
-      <p class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">
-        Objeto del contrato
-      </p>
-      <p class="text-sm text-gray-700 leading-relaxed mb-4">
-        {{ contrato()!.objeto }}
-      </p>
-      <p class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">
-        Actividades contratadas
-      </p>
-      <p class="text-sm text-gray-500 leading-relaxed">
-        {{ contrato()!.actividadesContrato }}
-      </p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">
+            Objeto del contrato
+          </p>
+          <p class="text-sm text-gray-700 leading-relaxed">
+            {{ contrato()!.objeto }}
+          </p>
+        </div>
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">
+            Actividades contratadas
+          </p>
+          <p class="text-sm text-gray-500 leading-relaxed">
+            {{ contrato()!.actividadesContrato }}
+          </p>
+        </div>
+      </div>
     </div>
 
     <!-- ── RS notice (editable state with supervisor rejection) ── -->
@@ -180,48 +183,45 @@
         Guardado: 26 ago 2025, 10:32
       </p>
 
-      <!-- Form header: Proceso + date range -->
-      <div class="space-y-4 mb-6">
+      <!-- Form header: Proceso + date range — 3 columns at md+ -->
+      <div class="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,12rem)_minmax(0,12rem)] gap-4 mb-6">
         <div>
           <label for="select-proceso" [class]="labelCls">Proceso institucional</label>
           <select
             id="select-proceso"
             [class]="selectCls"
-            [value]="proceso"
-            (change)="proceso = $any($event.target).value"
+            [value]="proceso()"
+            (change)="proceso.set($any($event.target).value)"
           >
             <option value="">Seleccionar proceso...</option>
             @for (p of procesos; track p) {
-              <option [value]="p" [selected]="proceso === p">{{ p }}</option>
+              <option [value]="p" [selected]="proceso() === p">{{ p }}</option>
             }
           </select>
         </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label for="fecha-inicio" [class]="labelCls">Período inicio</label>
-            <input
-              id="fecha-inicio"
-              type="date"
-              [class]="inputCls"
-              [value]="periodoInicio"
-              [min]="contrato()!.fechaInicio"
-              [max]="contrato()!.fechaFin"
-              (change)="periodoInicio = $any($event.target).value"
-            />
-          </div>
-          <div>
-            <label for="fecha-fin" [class]="labelCls">Período fin</label>
-            <input
-              id="fecha-fin"
-              type="date"
-              [class]="inputCls"
-              [value]="periodoFin"
-              [min]="contrato()!.fechaInicio"
-              [max]="contrato()!.fechaFin"
-              (change)="periodoFin = $any($event.target).value"
-            />
-          </div>
+        <div>
+          <label for="fecha-inicio" [class]="labelCls">Período inicio</label>
+          <input
+            id="fecha-inicio"
+            type="date"
+            [class]="inputCls"
+            [value]="periodoInicio()"
+            [min]="contrato()!.fechaInicio"
+            [max]="contrato()!.fechaFin"
+            (change)="periodoInicio.set($any($event.target).value)"
+          />
+        </div>
+        <div>
+          <label for="fecha-fin" [class]="labelCls">Período fin</label>
+          <input
+            id="fecha-fin"
+            type="date"
+            [class]="inputCls"
+            [value]="periodoFin()"
+            [min]="contrato()!.fechaInicio"
+            [max]="contrato()!.fechaFin"
+            (change)="periodoFin.set($any($event.target).value)"
+          />
         </div>
       </div>
 
@@ -345,10 +345,11 @@
                         type="number"
                         min="0"
                         max="100"
+                        step="0.01"
                         [class]="inputCls"
                         [value]="act.avance"
                         (input)="onAvanceInput(i, $event)"
-                        aria-label="Porcentaje de avance"
+                        aria-label="Porcentaje de avance (hasta 2 decimales)"
                       />
                     </div>
                   </div>
@@ -547,15 +548,15 @@
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-y-4 gap-x-6 mb-6">
         <div>
           <p class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">Proceso</p>
-          <p class="text-sm text-gray-700">{{ proceso || '—' }}</p>
+          <p class="text-sm text-gray-700">{{ proceso() || '—' }}</p>
         </div>
         <div>
           <p class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">Período inicio</p>
-          <p class="text-sm text-gray-700 tabular-nums">{{ periodoInicio || '—' }}</p>
+          <p class="text-sm text-gray-700 tabular-nums">{{ periodoInicio() || '—' }}</p>
         </div>
         <div>
           <p class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">Período fin</p>
-          <p class="text-sm text-gray-700 tabular-nums">{{ periodoFin || '—' }}</p>
+          <p class="text-sm text-gray-700 tabular-nums">{{ periodoFin() || '—' }}</p>
         </div>
       </div>
 
@@ -659,13 +660,39 @@
 
     }
 
+    <!-- ── Errores de validación — sólo en modo editable ── -->
+    @if (esEditable() && !formularioValido()) {
+      <div [class]="errorPanelCls" role="alert" aria-live="polite">
+        <div class="flex items-start gap-3">
+          <svg class="shrink-0 mt-0.5" width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="#92400e" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M9.15 3.5L2 16.5h16L10.85 3.5a1 1 0 00-1.7 0z"/>
+            <line x1="10" y1="8.5" x2="10" y2="12.5"/>
+            <circle cx="10" cy="15" r="0.5" fill="#92400e"/>
+          </svg>
+          <div>
+            <p class="text-sm font-semibold text-amber-800 mb-2">
+              Para generar el certificado, completa los siguientes campos:
+            </p>
+            <ul class="space-y-1">
+              @for (err of erroresValidacion(); track $index) {
+                <li class="text-sm text-amber-700 flex items-start gap-1.5">
+                  <span class="mt-1.5 shrink-0 inline-block w-1 h-1 rounded-full bg-amber-400" aria-hidden="true"></span>
+                  {{ err }}
+                </li>
+              }
+            </ul>
+          </div>
+        </div>
+      </div>
+    }
+
     <!-- ── "Generar certificado" — descarga el PDF del informe ── -->
     <div class="border-t border-gray-100 pt-5 pb-6">
       <button
         type="button"
         [class]="primaryBtnCls"
         (click)="generarCertificado()"
-        [disabled]="cargando() || !contrato()"
+        [disabled]="cargando() || !contrato() || (esEditable() && !formularioValido())"
         aria-label="Generar y descargar el certificado de cumplido en PDF"
       >
         <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -679,6 +706,49 @@
     </div>
 
   </main>
+
+  <!-- ── Visor PDF (Issue 7): patrón del legacy — getDataUrl + iframe ────── -->
+  @if (visorAbierto()) {
+    <div
+      class="fixed inset-0 z-50 flex flex-col"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Vista previa del certificado de cumplido"
+    >
+      <!-- Toolbar -->
+      <div class="flex shrink-0 items-center justify-between gap-4 border-b border-gray-200 bg-white px-4 py-3">
+        <span class="text-sm font-semibold text-gray-900">Vista previa — Certificado</span>
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            [class]="primaryBtnCls"
+            (click)="descargarPDF()"
+            aria-label="Guardar y descargar el certificado como PDF"
+          >
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M8 2v8M5 7l3 3 3-3"/>
+              <path d="M3 13h10"/>
+            </svg>
+            Guardar
+          </button>
+          <button
+            type="button"
+            [class]="ghostBtnCls"
+            (click)="cerrarVisor()"
+            aria-label="Cancelar y cerrar la vista previa"
+          >
+            Cancelar
+          </button>
+        </div>
+      </div>
+      <!-- iframe PDF -->
+      <iframe
+        [src]="pdfDataUrl()"
+        class="min-h-0 w-full flex-1 border-0 bg-gray-100"
+        title="Vista previa del certificado de cumplido"
+      ></iframe>
+    </div>
+  }
 }
 
 </div>

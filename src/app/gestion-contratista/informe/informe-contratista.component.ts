@@ -1,8 +1,11 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { AutoGrowDirective } from './auto-grow.directive';
+import { EstadoChipComponent } from '../../shared/components/estado-chip.component';
 import { MOCK_DETALLES } from '../detalle-soporte/detalle-soporte-contratista.component';
-import { generarCertificadoPDF } from './generar-certificado';
+import { crearCertificadoPDF, buildFilename } from './generar-certificado';
+import { MAIN_WIDE, HDR_WIDE } from '../../shared/layout';
 
 export interface EvidenciaItem {
   tipo: 'texto' | 'enlace';
@@ -39,20 +42,6 @@ export interface InformeData {
   periodoInformeFin: string;
   actividades: ActividadItem[];
 }
-
-interface EstadoConfig {
-  label: string;
-  chipClass: string;
-}
-
-const ESTADO_CONFIG: Record<string, EstadoConfig> = {
-  CD:  { label: 'Creado',           chipClass: 'bg-[#FF9311] text-gray-900' },
-  PRS: { label: 'En revisión',      chipClass: 'bg-[#FFB051] text-gray-900' },
-  AS:  { label: 'Aprobado Sup.',    chipClass: 'bg-[#218B22] text-white'    },
-  AP:  { label: 'Aprobado',         chipClass: 'bg-[#218B22] text-white'    },
-  RS:  { label: 'Rechazado Sup.',   chipClass: 'bg-[#930E10] text-white'    },
-  RO:  { label: 'Rechazado Ord.',   chipClass: 'bg-gray-500 text-white'     },
-};
 
 export const PROCESOS: readonly string[] = [
   'Planeación Estratégica e Institucional',
@@ -107,7 +96,10 @@ const MOCK_INFORMES: InformeData[] = [
             actividad:
               'Atención de 23 tickets de soporte nivel 1 y 2 para los sistemas SGA y KRONOS',
             productoAsociado: 'Registro de incidencias cerradas en mesa de ayuda institucional',
-            evidencias: [{ tipo: 'texto' as const, valor: 'Capturas de pantalla de tickets cerrados; correos de confirmación de usuarios finales' }],
+            evidencias: [
+              { tipo: 'texto' as const, valor: 'Capturas de pantalla de tickets cerrados; correos de confirmación de usuarios finales adjuntadas en carpeta compartida del proyecto' },
+              { tipo: 'enlace' as const, valor: 'https://drive.google.com/drive/folders/ejemplo-carpeta-soporte-julio-2025' },
+            ],
             activo: true,
           },
         ],
@@ -329,10 +321,14 @@ const MOCK_INFORMES: InformeData[] = [
 @Component({
   selector: 'app-informe-contratista',
   standalone: true,
-  imports: [AutoGrowDirective],
+  imports: [AutoGrowDirective, EstadoChipComponent],
   templateUrl: './informe-contratista.component.html',
 })
 export class InformeContratistaComponent {
+  // ── Layout ────────────────────────────────────────────────────────────────
+  readonly mainCls = MAIN_WIDE;
+  readonly hdrCls  = HDR_WIDE;
+
   // ── Literal class strings — TW scanner must see these at build time ────────
   readonly backBtnCls =
     'inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#731514] rounded';
@@ -393,17 +389,67 @@ export class InformeContratistaComponent {
   readonly rsPanelCls = 'rounded-xl border border-[#edaaab] bg-[#f8d9d9] p-4 mb-5';
   readonly roPanelCls = 'rounded-xl border border-[#d8dce4] bg-[#f0f2f5] p-4 mb-5';
 
+  readonly errorPanelCls = 'rounded-xl border border-amber-200 bg-amber-50 p-4 mb-5';
+
   // ── State ─────────────────────────────────────────────────────────────────
   readonly cargando = signal(true);
   readonly contrato = signal<InformeData | null>(null);
   readonly actividades = signal<ActividadItem[]>([]);
 
+  // Issue 7: visor previo antes de descargar (patrón del legacy: getDataUrl + iframe)
+  readonly visorAbierto = signal(false);
+  readonly pdfDataUrl = signal<SafeResourceUrl>('');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private pdfDoc: any = null;
+  private pdfFilename = '';
+
+  private readonly sanitizer = inject(DomSanitizer);
+
   readonly pagoMensualId: number;
 
-  // Top-level form fields — plain class properties (no computed depends on them)
-  proceso = '';
-  periodoInicio = '';
-  periodoFin = '';
+  // Top-level form fields — signals so erroresValidacion() puede rastrearlos reactivamente.
+  readonly proceso = signal('');
+  readonly periodoInicio = signal('');
+  readonly periodoFin = signal('');
+
+  // Validación completa antes de generar el certificado.
+  // Retorna lista de mensajes legibles; vacía = formulario válido.
+  readonly erroresValidacion = computed((): string[] => {
+    const errs: string[] = [];
+    if (!this.proceso().trim()) errs.push('Selecciona el proceso institucional.');
+    if (!this.periodoInicio()) errs.push('Ingresa la fecha de inicio del período.');
+    if (!this.periodoFin()) errs.push('Ingresa la fecha de fin del período.');
+
+    const acts = this.actividades();
+    if (acts.length === 0) {
+      errs.push('Agrega al menos una actividad específica.');
+      return errs;
+    }
+    for (let i = 0; i < acts.length; i++) {
+      const act = acts[i];
+      const n = i + 1;
+      if (!act.actividadEspecifica.trim())
+        errs.push(`Actividad ${n}: falta la descripción de la actividad específica.`);
+      const realizadas = act.actividadesRealizadas.filter((ar) => ar.activo);
+      if (realizadas.length === 0)
+        errs.push(`Actividad ${n}: agrega al menos una actividad realizada.`);
+      for (let j = 0; j < realizadas.length; j++) {
+        const ar = realizadas[j];
+        const m = j + 1;
+        if (!ar.actividad.trim())
+          errs.push(`Actividad ${n} · realizada ${m}: falta la descripción de lo que se hizo.`);
+        if (!ar.productoAsociado.trim())
+          errs.push(`Actividad ${n} · realizada ${m}: falta el producto asociado.`);
+        for (let k = 0; k < ar.evidencias.length; k++) {
+          if (!ar.evidencias[k].valor.trim())
+            errs.push(`Actividad ${n} · realizada ${m}: evidencia ${k + 1} está vacía.`);
+        }
+      }
+    }
+    return errs;
+  });
+
+  readonly formularioValido = computed(() => this.erroresValidacion().length === 0);
 
   readonly procesos = PROCESOS;
 
@@ -426,9 +472,9 @@ export class InformeContratistaComponent {
       const mock = MOCK_INFORMES.find((m) => m.pagoMensualId === this.pagoMensualId);
       this.contrato.set(mock ?? null);
       if (mock) {
-        this.proceso = mock.proceso;
-        this.periodoInicio = mock.periodoInformeInicio;
-        this.periodoFin = mock.periodoInformeFin;
+        this.proceso.set(mock.proceso);
+        this.periodoInicio.set(mock.periodoInformeInicio);
+        this.periodoFin.set(mock.periodoInformeFin);
         this.actividades.set(
           mock.actividades.map((a) => ({
             ...a,
@@ -438,16 +484,6 @@ export class InformeContratistaComponent {
       }
       this.cargando.set(false);
     }, 900);
-  }
-
-  // ── Chip helpers ──────────────────────────────────────────────────────────
-  chipClass(estado: string): string {
-    const color = ESTADO_CONFIG[estado]?.chipClass ?? 'bg-gray-300 text-gray-800';
-    return `${color} inline-flex items-center justify-center min-w-[7.5rem] rounded-full px-2.5 py-0.5 text-xs font-semibold`;
-  }
-
-  chipLabel(estado: string): string {
-    return ESTADO_CONFIG[estado]?.label ?? estado;
   }
 
   // ── Accordion toggle ──────────────────────────────────────────────────────
@@ -500,7 +536,10 @@ export class InformeContratistaComponent {
 
   onAvanceInput(index: number, event: Event): void {
     const raw = Number((event.target as HTMLInputElement).value);
-    const value = Math.min(100, Math.max(0, isNaN(raw) ? 0 : Math.round(raw)));
+    // Hasta 2 decimales — Math.round(x * 100) / 100 preserva precisión sin acumular
+    // errores de coma flotante para valores del rango 0-100 con 2 decimales.
+    const clamped = Math.min(100, Math.max(0, isNaN(raw) ? 0 : raw));
+    const value = Math.round(clamped * 100) / 100;
     this.actividades.update((list) =>
       list.map((a, i) => (i === index ? { ...a, avance: value } : a)),
     );
@@ -652,19 +691,30 @@ export class InformeContratistaComponent {
     );
   }
 
-  // ── PDF ───────────────────────────────────────────────────────────────────
+  // ── PDF — visor previo (patrón legacy: getDataUrl + iframe modal) ─────────
   generarCertificado(): void {
     const informe = this.contrato();
     if (!informe) return;
     const detalle = MOCK_DETALLES.find((d) => d.pagoMensualId === this.pagoMensualId) ?? null;
-    generarCertificadoPDF(
-      informe,
-      detalle,
-      this.proceso,
-      this.periodoInicio,
-      this.periodoFin,
-      this.actividades(),
+    this.pdfDoc = crearCertificadoPDF(
+      informe, detalle, this.proceso(), this.periodoInicio(), this.periodoFin(), this.actividades(),
     );
+    this.pdfFilename = buildFilename(informe);
+    // pdfmake 0.3.x: getDataUrl() es async (devuelve Promise), no acepta callback.
+    // El legacy pdfmakeoas@0.0.2 tenía API callback — aquí se usa .then().
+    (this.pdfDoc.getDataUrl() as Promise<string>).then((dataUrl) => {
+      this.pdfDataUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(dataUrl));
+      this.visorAbierto.set(true);
+    });
+  }
+
+  descargarPDF(): void {
+    this.pdfDoc?.download(this.pdfFilename);
+  }
+
+  cerrarVisor(): void {
+    this.visorAbierto.set(false);
+    this.pdfDataUrl.set('');
   }
 
   // ── Navigation ────────────────────────────────────────────────────────────

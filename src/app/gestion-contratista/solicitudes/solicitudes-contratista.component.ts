@@ -1,5 +1,16 @@
 import { Component, computed, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { EstadoChipComponent } from '../../shared/components/estado-chip.component';
+import { EmptyStateComponent } from '../../shared/components/empty-state.component';
+import {
+  DataTableComponent,
+  TableCardDirective,
+  TableColumn,
+  TableRowDirective,
+} from '../../shared/components/data-table.component';
+import { TabBarComponent, TabItem } from '../../shared/components/tab-bar.component';
+import { SORT_PRIORITY } from '../../shared/estado.constants';
+import { MAIN_WIDE, HDR_WIDE } from '../../shared/layout';
 
 type EstadoCode = 'CD' | 'PRS' | 'AS' | 'AP' | 'RS' | 'RO';
 type FiltroTab  = 'accion' | 'todos';
@@ -12,11 +23,6 @@ interface SolicitudMock {
   ano: number;
   estado: EstadoCode;
   fechaCreacion: string; // display string, e.g. '1 ago 2025'
-}
-
-interface EstadoConfig {
-  label: string;
-  chipClass: string;
 }
 
 const MES_NOMBRES = [
@@ -37,18 +43,6 @@ function formatFecha(date: Date): string {
   return `${date.getDate()} ${MES_ABREV[date.getMonth()]} ${date.getFullYear()}`;
 }
 
-const ESTADO_CONFIG: Record<string, EstadoConfig> = {
-  CD:  { label: 'Creado',         chipClass: 'bg-[#FF9311] text-gray-900' },
-  PRS: { label: 'En revisión',    chipClass: 'bg-[#FFB051] text-gray-900' },
-  AS:  { label: 'Aprobado Sup.',  chipClass: 'bg-[#218B22] text-white'    },
-  AP:  { label: 'Aprobado',       chipClass: 'bg-[#218B22] text-white'    },
-  RS:  { label: 'Rechazado Sup.', chipClass: 'bg-[#930E10] text-white'    },
-  RO:  { label: 'Rechazado Ord.', chipClass: 'bg-gray-500 text-white'     },
-};
-
-const SORT_PRIORITY: Record<string, number> = {
-  CD: 1, RS: 2, PRS: 3, AS: 4, AP: 5, RO: 6,
-};
 
 // All 6 mocks belong to contract 789-2025 — one per month.
 // pagoMensualId values are shared with detalle-soporte + informe components.
@@ -64,42 +58,100 @@ const MOCK_SOLICITUDES: SolicitudMock[] = [
 @Component({
   selector: 'app-solicitudes-contratista',
   standalone: true,
-  imports: [],
+  imports: [EstadoChipComponent, EmptyStateComponent, DataTableComponent, TableRowDirective, TableCardDirective, TabBarComponent],
   templateUrl: './solicitudes-contratista.component.html',
 })
 export class SolicitudesContratistaComponent {
+  // ── Layout ────────────────────────────────────────────────────────────────
+  readonly mainCls = MAIN_WIDE;
+  readonly hdrCls  = HDR_WIDE;
+
   // ── Literal class strings — TW scanner requires these to be literals ──────
   readonly backBtnCls =
     'inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#731514] rounded';
 
-  // Form "Crear solicitud" button
   readonly primaryBtnCls =
     'inline-flex items-center justify-center gap-1.5 rounded-md bg-[#731514] px-3 py-2 text-sm font-semibold text-white shadow-sm transition-colors duration-150 hover:bg-[#5e1212] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#731514]';
 
-  // Mobile full-width action button
   readonly primaryBtnFullCls =
     'w-full inline-flex items-center justify-center gap-2 rounded-md bg-[#731514] px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-[#5e1212] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#731514]';
 
-  // Row action — crimson for actionable states (CD/RS): contratista must act
-  // min-w + justify-center normalizes all variants to the width of the longest label
   readonly verSoporteBtnCls =
     'inline-flex items-center justify-center gap-1.5 min-w-[10.5rem] rounded-md bg-[#731514] px-3 py-1.5 text-sm font-semibold text-white shadow-sm transition-colors duration-150 hover:bg-[#5e1212] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#731514]';
 
-  // Row action — ghost for non-actionable states (PRS/AS/AP/RO): just view
   readonly verEstadoBtnCls =
     'inline-flex items-center justify-center gap-1.5 min-w-[10.5rem] rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-600 transition-colors duration-150 hover:bg-gray-50 hover:border-gray-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#731514]';
 
   readonly selectCls =
     'block rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm transition-colors duration-150 focus:border-[#731514] focus:outline-none focus:ring-2 focus:ring-[#731514]/30';
 
-  readonly tabActiveCls =
-    'border-b-2 border-[#731514] px-3 pb-3 pt-3 text-sm font-semibold text-[#731514] focus-visible:outline-none whitespace-nowrap';
-
-  readonly tabInactiveCls =
-    'border-b-2 border-transparent px-3 pb-3 pt-3 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 transition-colors duration-150 focus-visible:outline-none whitespace-nowrap';
-
-  readonly sortBtnCls =
-    'flex w-full items-center justify-center gap-1 text-xs font-semibold uppercase tracking-wider text-gray-500 hover:text-gray-900 transition-colors duration-150 focus-visible:outline-none';
+  // ── Column definitions for DataTableComponent ─────────────────────────────
+  readonly tableColumns: TableColumn[] = [
+    {
+      key: 'numContrato',
+      header: 'N° Contrato',
+      sortable: false,
+      thClass: 'w-32 py-3 pl-5 pr-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500',
+      skHdr: 'h-2.5 w-10 animate-pulse rounded bg-gray-200',
+      skCell: 'h-4 w-10 animate-pulse rounded bg-gray-100',
+    },
+    {
+      key: 'cdp',
+      header: 'CDP',
+      sortable: false,
+      thClass: 'hidden w-24 px-3 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500 lg:table-cell',
+      skHdr: 'hidden h-2.5 w-16 animate-pulse rounded bg-gray-200 lg:block',
+      skCell: 'hidden h-4 w-16 animate-pulse rounded bg-gray-100 lg:block',
+    },
+    {
+      key: 'vigenciaCdp',
+      header: 'Vigencia CDP',
+      sortable: false,
+      thClass: 'hidden w-24 px-3 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500 lg:table-cell',
+      skHdr: 'hidden h-2.5 w-24 animate-pulse rounded bg-gray-200 lg:block',
+      skCell: 'hidden h-4 w-24 animate-pulse rounded bg-gray-100 lg:block',
+    },
+    {
+      key: 'ano',
+      header: 'Año',
+      sortable: true,
+      thClass: 'w-16 px-3 py-3 text-center',
+      skHdr: 'h-2.5 w-20 animate-pulse rounded bg-gray-200',
+      skCell: 'h-4 w-10 animate-pulse rounded bg-gray-100',
+    },
+    {
+      key: 'mes',
+      header: 'Mes',
+      sortable: true,
+      thClass: 'w-28 px-3 py-3 text-center',
+      skHdr: 'h-2.5 w-16 animate-pulse rounded bg-gray-200',
+      skCell: 'h-4 w-16 animate-pulse rounded bg-gray-100',
+    },
+    {
+      key: 'fechaCreacion',
+      header: 'Fecha creación',
+      sortable: false,
+      thClass: 'w-28 px-3 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500',
+      skHdr: 'h-2.5 w-24 animate-pulse rounded bg-gray-200',
+      skCell: 'h-4 w-24 animate-pulse rounded bg-gray-100',
+    },
+    {
+      key: 'estado',
+      header: 'Estado',
+      sortable: true,
+      thClass: 'w-36 px-3 py-3 text-center',
+      skHdr: 'h-2.5 flex-1 animate-pulse rounded bg-gray-200',
+      skCell: 'h-5 w-24 animate-pulse rounded-full bg-gray-100',
+    },
+    {
+      key: 'accion',
+      header: 'Acción',
+      sortable: false,
+      thClass: 'w-44 py-3 px-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500',
+      skHdr: 'h-2.5 w-28 animate-pulse rounded bg-gray-200',
+      skCell: 'h-8 w-28 animate-pulse rounded-md bg-gray-100',
+    },
+  ];
 
   // ── Static data ────────────────────────────────────────────────────────────
   readonly meses = MESES;
@@ -141,6 +193,16 @@ export class SolicitudesContratistaComponent {
     this._solicitudes().filter((s) => s.estado === 'CD' || s.estado === 'RS').length,
   );
 
+  readonly tabItems = computed<TabItem[]>(() => [
+    { id: 'accion', label: 'Requieren atención', count: this.accionCount() },
+    { id: 'todos', label: 'Todos' },
+  ]);
+
+  readonly footerText = computed(() => {
+    const n = this.solicitudesFiltradas().length;
+    return `${n} ${n === 1 ? 'solicitud' : 'solicitudes'}`;
+  });
+
   constructor(
     private readonly route: ActivatedRoute,
     private readonly router: Router,
@@ -152,31 +214,14 @@ export class SolicitudesContratistaComponent {
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────
-  chipClass(estado: string): string {
-    const color = ESTADO_CONFIG[estado]?.chipClass ?? 'bg-gray-300 text-gray-800';
-    return `${color} inline-flex items-center justify-center min-w-[7.5rem] rounded-full px-2.5 py-0.5 text-xs font-semibold`;
-  }
-
-  chipLabel(estado: string): string {
-    return ESTADO_CONFIG[estado]?.label ?? estado;
-  }
-
-  tabClass(tab: FiltroTab): string {
-    return this.filtroActivo() === tab ? this.tabActiveCls : this.tabInactiveCls;
-  }
-
-  sortBy(col: SortCol): void {
-    if (this.sortColumn() === col) {
+  sortBy(col: string): void {
+    const sortCol = col as SortCol;
+    if (this.sortColumn() === sortCol) {
       this.sortDirection.update((d) => (d === 'asc' ? 'desc' : 'asc'));
     } else {
-      this.sortColumn.set(col);
+      this.sortColumn.set(sortCol);
       this.sortDirection.set('asc');
     }
-  }
-
-  sortIcon(col: SortCol): string {
-    if (this.sortColumn() !== col) return '↕';
-    return this.sortDirection() === 'asc' ? '↑' : '↓';
   }
 
   accionBtnClass(estado: EstadoCode): string {

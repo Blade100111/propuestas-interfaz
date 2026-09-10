@@ -2,294 +2,186 @@
 
   <!-- ── Header ─────────────────────────────────────────────────────────── -->
   <header class="border-b border-gray-200 bg-white px-4 sm:px-6 lg:px-8">
-    <div class="mx-auto max-w-7xl py-6">
+    <div [class]="hdrCls">
       <h1 class="text-xl font-bold tracking-tight text-gray-900">Mis contratos</h1>
       <p class="mt-0.5 text-sm text-gray-500">
-        María García &middot; C.C. 51.234.567
+        {{ session.usuario().nombre }} &middot; C.C. {{ session.usuario().documento }}
       </p>
     </div>
   </header>
 
   <!-- ── Main ────────────────────────────────────────────────────────────── -->
-  <main class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+  <main [class]="mainCls">
 
-    <!-- Loading skeleton -->
-    @if (cargando()) {
-      <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
-           aria-label="Cargando contratos"
-           aria-busy="true">
-        <!-- Skeleton header row -->
-        <div class="flex items-center gap-4 border-b border-gray-100 bg-gray-50 px-5 py-3">
-          <div class="h-2.5 w-28 animate-pulse rounded bg-gray-200"></div>
-          <div class="h-2.5 w-14 animate-pulse rounded bg-gray-200"></div>
-          <div class="h-2.5 w-20 animate-pulse rounded bg-gray-200"></div>
-          <div class="hidden h-2.5 w-14 animate-pulse rounded bg-gray-200 lg:block"></div>
-          <div class="hidden h-2.5 w-14 animate-pulse rounded bg-gray-200 lg:block"></div>
-          <div class="h-2.5 flex-1 animate-pulse rounded bg-gray-200"></div>
-          <div class="h-2.5 w-28 animate-pulse rounded bg-gray-200"></div>
-        </div>
-        @for (i of [1, 2, 3, 4, 5, 6, 7]; track i) {
-          <div class="flex items-center gap-4 border-b border-gray-100 px-5 py-4 last:border-0"
-               [class.bg-gray-50]="i === 3">
-            <div class="h-4 w-24 animate-pulse rounded bg-gray-100"></div>
-            <div class="h-4 w-12 animate-pulse rounded bg-gray-100"></div>
-            <div class="h-5 w-20 animate-pulse rounded-full bg-gray-100"></div>
-            <div class="hidden h-4 w-14 animate-pulse rounded bg-gray-100 lg:block"></div>
-            <div class="hidden h-4 w-14 animate-pulse rounded bg-gray-100 lg:block"></div>
-            <div class="h-4 flex-1 animate-pulse rounded bg-gray-100"></div>
-            <div class="h-8 w-36 animate-pulse rounded-md bg-gray-100"></div>
-          </div>
-        }
+    <!-- Search bar — solo visible cuando hay contratos y no está cargando -->
+    @if (!cargando() && contratos().length > 0) {
+      <div class="mb-4">
+        <app-search-input
+          placeholder="Buscar por número de contrato"
+          ariaLabel="Buscar contratos"
+          [value]="busqueda()"
+          (valueChange)="busqueda.set($event)"
+        />
       </div>
     }
 
+    <!-- Empty state: sin contratos -->
+    @if (!cargando() && contratos().length === 0) {
+      <app-empty-state
+        title="Sin contratos activos"
+        description="No tiene contratos asociados a su número de documento."
+        paddingClass="py-20"
+      >
+        <svg class="h-8 w-8 text-gray-400" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="1.5"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        </svg>
+      </app-empty-state>
+    }
+
+    <!-- Empty state: búsqueda sin resultados -->
+    @else if (!cargando() && contratosFiltrados().length === 0) {
+      <app-empty-state
+        title="Sin resultados"
+        description="Ningún contrato coincide con tu búsqueda."
+      >
+        <svg class="h-8 w-8 text-gray-400" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="1.5"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 15.803 7.5 7.5 0 0015.803 15.803z"/>
+        </svg>
+      </app-empty-state>
+    }
+
+    <!-- Tabla genérica (maneja su propio skeleton cuando loading=true) -->
     @else {
+      <app-data-table
+        [columns]="tableColumns"
+        [rows]="contratosFiltrados()"
+        [loading]="cargando()"
+        [skeletonRows]="7"
+        ariaLabel="Contratos activos del contratista"
+        [sortColumn]="sortColumn()"
+        [sortDirection]="sortDirection()"
+        [footerText]="footerText()"
+        [mobileFooterText]="mobileFooterText()"
+        [rowClassFn]="contratoRowClass"
+        (sortChange)="sortBy($event)"
+      >
+        <!-- ── Celdas desktop ── -->
+        <ng-template appTableRow let-contrato>
 
-      <!-- Search bar — shown only when there are contracts to search -->
-      @if (contratos().length > 0) {
-        <div class="mb-4">
-          <div class="relative max-w-sm">
-            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"
-                 aria-hidden="true">
-              <svg class="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd"
-                      d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z"
-                      clip-rule="evenodd"/>
-              </svg>
-            </div>
-            <input
-              type="search"
-              [class]="searchInputCls"
-              placeholder="Buscar por número de contrato"
-              aria-label="Buscar contratos"
-              (input)="setBusqueda($event)"
-            />
-          </div>
-        </div>
-      }
-
-      <!-- Empty state: no contracts at all -->
-      @if (contratos().length === 0) {
-        <div class="flex flex-col items-center justify-center rounded-xl border border-gray-200 bg-white py-20 text-center shadow-sm">
-          <div class="rounded-full bg-gray-100 p-4">
-            <svg class="h-8 w-8 text-gray-400" viewBox="0 0 24 24" fill="none"
-                 stroke="currentColor" stroke-width="1.5"
-                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-            </svg>
-          </div>
-          <h2 class="mt-4 text-sm font-semibold text-gray-900">Sin contratos activos</h2>
-          <p class="mt-1 text-sm text-gray-500">
-            No tiene contratos asociados a su número de documento.
-          </p>
-        </div>
-      }
-
-      <!-- Empty state: search returned no results -->
-      @else if (contratosFiltrados().length === 0) {
-        <div class="flex flex-col items-center justify-center rounded-xl border border-gray-200 bg-white py-16 text-center shadow-sm">
-          <div class="rounded-full bg-gray-100 p-4">
-            <svg class="h-8 w-8 text-gray-400" viewBox="0 0 24 24" fill="none"
-                 stroke="currentColor" stroke-width="1.5"
-                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 15.803 7.5 7.5 0 0015.803 15.803z"/>
-            </svg>
-          </div>
-          <h2 class="mt-4 text-sm font-semibold text-gray-900">Sin resultados</h2>
-          <p class="mt-1 text-sm text-gray-500">
-            Ningún contrato coincide con tu búsqueda.
-          </p>
-        </div>
-      }
-
-      <!-- Data: table (≥md) + cards (<md) -->
-      @else {
-
-        <!-- ── Desktop table ──────────────────────────────────────────────── -->
-        <div class="hidden md:block">
-          <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-            <table class="min-w-full table-fixed divide-y divide-gray-200"
-                   aria-label="Contratos activos del contratista">
-              <caption class="sr-only">
-                {{ contratosFiltrados().length }} contratos activos
-              </caption>
-              <thead class="bg-gray-50">
-                <tr>
-                  <th scope="col" class="w-36 py-3 pl-5 pr-3 text-center">
-                    <button [class]="sortBtnCls" (click)="sortBy('numero')" type="button">
-                      N° Contrato <span aria-hidden="true">{{ sortIcon('numero') }}</span>
-                    </button>
-                  </th>
-                  <th scope="col" class="w-20 px-3 py-3 text-center">
-                    <button [class]="sortBtnCls" (click)="sortBy('vigencia')" type="button">
-                      Vigencia <span aria-hidden="true">{{ sortIcon('vigencia') }}</span>
-                    </button>
-                  </th>
-                  <th scope="col" class="w-36 px-3 py-3 text-center">
-                    <button [class]="sortBtnCls" (click)="sortBy('tipo')" type="button">
-                      Tipo <span aria-hidden="true">{{ sortIcon('tipo') }}</span>
-                    </button>
-                  </th>
-                  <th scope="col"
-                      class="hidden w-24 px-3 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500 lg:table-cell">
-                    RP
-                  </th>
-                  <th scope="col"
-                      class="hidden w-24 px-3 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500 lg:table-cell">
-                    CDP
-                  </th>
-                  <th scope="col" class="w-56 px-3 py-3 text-center">
-                    <button [class]="sortBtnCls" (click)="sortBy('dependencia')" type="button">
-                      Dependencia <span aria-hidden="true">{{ sortIcon('dependencia') }}</span>
-                    </button>
-                  </th>
-                  <th scope="col"
-                      class="w-44 py-3 px-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500">
-                    Acción
-                  </th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-100 bg-white">
-                @for (contrato of contratosFiltrados(); track contrato.id) {
-                  <tr [class]="rowClass(contrato)">
-
-                    <!-- N° Contrato -->
-                    <td class="whitespace-nowrap py-4 pl-5 pr-3 text-center">
-                      @if (contrato.esOtroSi) {
-                        <span class="mr-1 select-none text-gray-300" aria-hidden="true">↳</span>
-                      }
-                      <span class="tabular-nums text-sm font-bold text-gray-900">
-                        {{ contrato.numeroContratoSuscrito }}
-                      </span>
-                    </td>
-
-                    <!-- Vigencia -->
-                    <td class="px-3 py-4 text-center">
-                      <span class="tabular-nums text-sm text-gray-600">{{ contrato.vigencia }}</span>
-                    </td>
-
-                    <!-- Tipo -->
-                    <td class="px-3 py-4 text-center">
-                      <span [class]="tipoBadgeClass(contrato)">{{ contrato.tipoContrato }}</span>
-                    </td>
-
-                    <!-- RP -->
-                    <td class="hidden px-3 py-4 text-center lg:table-cell">
-                      <span class="tabular-nums text-sm text-gray-600">{{ contrato.numeroRp }}</span>
-                    </td>
-
-                    <!-- CDP -->
-                    <td class="hidden px-3 py-4 text-center lg:table-cell">
-                      <span class="tabular-nums text-sm text-gray-600">{{ contrato.numeroCdp }}</span>
-                    </td>
-
-                    <!-- Dependencia -->
-                    <td class="px-3 py-4 text-center">
-                      <span class="text-sm text-gray-700">{{ contrato.nombreDependencia }}</span>
-                    </td>
-
-                    <!-- Acción -->
-                    <td class="py-4 pl-3 pr-5 text-center">
-                      <button
-                        [class]="primaryBtnCls"
-                        (click)="solicitarCumplido(contrato)"
-                        type="button"
-                        [attr.aria-label]="'Cargar soportes — Contrato ' + contrato.numeroContratoSuscrito"
-                      >
-                        Cargar soportes
-                        <svg width="13" height="13" viewBox="0 0 16 16" fill="none"
-                             stroke="currentColor" stroke-width="2"
-                             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                          <path d="M6 4l4 4-4 4"/>
-                        </svg>
-                      </button>
-                    </td>
-
-                  </tr>
-                }
-              </tbody>
-            </table>
-
-            <!-- Table footer -->
-            <div class="border-t border-gray-100 bg-gray-50 px-5 py-2.5">
-              <p class="text-xs text-gray-400">
-                {{ contratosFiltrados().length }}
-                @if (contratosFiltrados().length === 1) { contrato activo } @else { contratos activos }
-                @if (busqueda().trim()) {
-                  &nbsp;&mdash; filtrando {{ contratos().length }} totales
-                }
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <!-- ── Mobile cards ───────────────────────────────────────────────── -->
-        <div class="md:hidden">
-          <ul class="space-y-3" role="list" aria-label="Contratos activos">
-            @for (contrato of contratosFiltrados(); track contrato.id) {
-              <li class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-                <div class="p-4">
-
-                  <!-- Card header: number + tipo badge -->
-                  <div class="flex items-start justify-between gap-3">
-                    <span class="tabular-nums text-sm font-bold text-gray-900">
-                      {{ contrato.numeroContratoSuscrito }}
-                    </span>
-                    <span [class]="tipoBadgeClass(contrato)">
-                      {{ contrato.tipoContrato }}
-                    </span>
-                  </div>
-
-                  <!-- Detail grid: Vigencia / RP / CDP -->
-                  <dl class="mt-3 grid grid-cols-3 gap-x-2 gap-y-2.5 border-t border-gray-100 pt-3">
-                    <div>
-                      <dt class="text-xs font-semibold uppercase tracking-wide text-gray-400">Vigencia</dt>
-                      <dd class="tabular-nums mt-0.5 text-xs text-gray-700">{{ contrato.vigencia }}</dd>
-                    </div>
-                    <div>
-                      <dt class="text-xs font-semibold uppercase tracking-wide text-gray-400">RP</dt>
-                      <dd class="tabular-nums mt-0.5 text-xs text-gray-700">{{ contrato.numeroRp }}</dd>
-                    </div>
-                    <div>
-                      <dt class="text-xs font-semibold uppercase tracking-wide text-gray-400">CDP</dt>
-                      <dd class="tabular-nums mt-0.5 text-xs text-gray-700">{{ contrato.numeroCdp }}</dd>
-                    </div>
-                  </dl>
-
-                  <!-- Dependencia -->
-                  <p class="mt-2.5 text-xs text-gray-600">{{ contrato.nombreDependencia }}</p>
-
-                  <!-- Action -->
-                  <div class="mt-4">
-                    <button
-                      [class]="primaryBtnFullCls"
-                      (click)="solicitarCumplido(contrato)"
-                      type="button"
-                      [attr.aria-label]="'Cargar soportes — Contrato ' + contrato.numeroContratoSuscrito"
-                    >
-                      Cargar soportes
-                      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"
-                           stroke="currentColor" stroke-width="2"
-                           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M6 4l4 4-4 4"/>
-                      </svg>
-                    </button>
-                  </div>
-
-                </div>
-              </li>
+          <!-- N° Contrato -->
+          <td class="whitespace-nowrap py-4 pl-5 pr-3 text-center">
+            @if (contrato.esOtroSi) {
+              <span class="mr-1 select-none text-gray-300" aria-hidden="true">↳</span>
             }
-          </ul>
+            <span class="tabular-nums text-sm font-bold text-gray-900">
+              {{ contrato.numeroContratoSuscrito }}
+            </span>
+          </td>
 
-          <!-- Mobile footer count -->
-          <p class="mt-3 text-center text-xs text-gray-400">
-            {{ contratosFiltrados().length }}
-            @if (contratosFiltrados().length === 1) { contrato activo } @else { contratos activos }
-          </p>
-        </div>
+          <!-- Vigencia -->
+          <td class="px-3 py-4 text-center">
+            <span class="tabular-nums text-sm text-gray-600">{{ contrato.vigencia }}</span>
+          </td>
 
-      }
+          <!-- Tipo -->
+          <td class="px-3 py-4 text-center">
+            <span [class]="tipoBadgeClass(contrato)">{{ contrato.tipoContrato }}</span>
+          </td>
 
+          <!-- RP -->
+          <td class="hidden px-3 py-4 text-center lg:table-cell">
+            <span class="tabular-nums text-sm text-gray-600">{{ contrato.numeroRp }}</span>
+          </td>
+
+          <!-- CDP -->
+          <td class="hidden px-3 py-4 text-center lg:table-cell">
+            <span class="tabular-nums text-sm text-gray-600">{{ contrato.numeroCdp }}</span>
+          </td>
+
+          <!-- Dependencia -->
+          <td class="px-3 py-4 text-center">
+            <span class="text-sm text-gray-700">{{ contrato.nombreDependencia }}</span>
+          </td>
+
+          <!-- Acción -->
+          <td class="py-4 pl-3 pr-5 text-center">
+            <button
+              [class]="primaryBtnCls"
+              (click)="solicitarCumplido(contrato)"
+              type="button"
+              [attr.aria-label]="'Cargar soportes — Contrato ' + contrato.numeroContratoSuscrito"
+            >
+              Cargar soportes
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none"
+                   stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M6 4l4 4-4 4"/>
+              </svg>
+            </button>
+          </td>
+
+        </ng-template>
+
+        <!-- ── Tarjetas mobile ── -->
+        <ng-template appTableCard let-contrato>
+          <li class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+            <div class="p-4">
+
+              <!-- Card header: número + badge de tipo -->
+              <div class="flex items-start justify-between gap-3">
+                <span class="tabular-nums text-sm font-bold text-gray-900">
+                  {{ contrato.numeroContratoSuscrito }}
+                </span>
+                <span [class]="tipoBadgeClass(contrato)">
+                  {{ contrato.tipoContrato }}
+                </span>
+              </div>
+
+              <!-- Vigencia / RP / CDP -->
+              <dl class="mt-3 grid grid-cols-3 gap-x-2 gap-y-2.5 border-t border-gray-100 pt-3">
+                <div>
+                  <dt class="text-xs font-semibold uppercase tracking-wide text-gray-400">Vigencia</dt>
+                  <dd class="tabular-nums mt-0.5 text-xs text-gray-700">{{ contrato.vigencia }}</dd>
+                </div>
+                <div>
+                  <dt class="text-xs font-semibold uppercase tracking-wide text-gray-400">RP</dt>
+                  <dd class="tabular-nums mt-0.5 text-xs text-gray-700">{{ contrato.numeroRp }}</dd>
+                </div>
+                <div>
+                  <dt class="text-xs font-semibold uppercase tracking-wide text-gray-400">CDP</dt>
+                  <dd class="tabular-nums mt-0.5 text-xs text-gray-700">{{ contrato.numeroCdp }}</dd>
+                </div>
+              </dl>
+
+              <!-- Dependencia -->
+              <p class="mt-2.5 text-xs text-gray-600">{{ contrato.nombreDependencia }}</p>
+
+              <!-- Acción -->
+              <div class="mt-4">
+                <button
+                  [class]="primaryBtnFullCls"
+                  (click)="solicitarCumplido(contrato)"
+                  type="button"
+                  [attr.aria-label]="'Cargar soportes — Contrato ' + contrato.numeroContratoSuscrito"
+                >
+                  Cargar soportes
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none"
+                       stroke="currentColor" stroke-width="2"
+                       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M6 4l4 4-4 4"/>
+                  </svg>
+                </button>
+              </div>
+
+            </div>
+          </li>
+        </ng-template>
+
+      </app-data-table>
     }
 
   </main>

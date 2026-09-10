@@ -11,29 +11,45 @@
  *   - CDP / RP                            → API cumplidosCrud (preliquidación)
  *   - Valor total y ejecución financiera  → API cumplidosCrud (preliquidación)
  * Los campos anteriores se muestran como marcadores explícitos en el PDF del sandbox.
- *
- * LOGOS INSTITUCIONALES:
- *   El legacy embebe logo_ud y logo_sigud como base64 hardcodeado en el controller.
- *   Aquí se usan celdas de texto; en producción se reemplazan por:
- *   { rowSpan:3, image:'logo_ud', width:70, height:60 }
- *   donde 'logo_ud' es una clave del objeto `images` del docDefinition.
  */
 
 // Default import preserves `this` binding on pdfmake class instance methods.
-// Named-export destructuring (`import { createPdf, addFonts } from 'pdfmake'`)
-// detaches methods from the instance, causing TypeError at module evaluation time
-// because addFonts/createPdf use `this` internally.
 import pdfMake from 'pdfmake';
+
+// pdfmake font packages have no type declarations — @ts-ignore is intentional.
+// RobotoFontContainer exposes { vfs, fonts } — la fuente TTF embebida que usa el legacy
+// (pdfmakeoas@0.0.2 incluía Roboto por defecto; replicamos eso aquí).
+// addFontContainer carga VFS + alias en un paso.
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import RobotoFontContainer from 'pdfmake/build/fonts/Roboto';
 
 import type { InformeData, ActividadItem } from './informe-contratista.component';
 import type { DetalleContrato } from '../detalle-soporte/detalle-soporte-contratista.component';
+import { LOGO_UD, LOGO_SIGUD } from './logos';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
+const MESES = [
+  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
+];
+
+/** DD/MM/YYYY — fechas cortas internas */
 function fmt(fechaIso: string): string {
   if (!fechaIso) return '—';
   const parts = fechaIso.split('-');
   return `${parts[2]}/${parts[1]}/${parts[0]}`;
+}
+
+/** "del D de Mes de YYYY" — formato largo igual al legacy `utils.formatoFecha()` */
+function fmtLargo(fechaIso: string): string {
+  if (!fechaIso) return '—';
+  const parts = fechaIso.split('-');
+  const dia   = parseInt(parts[2], 10);
+  const mes   = parseInt(parts[1], 10);
+  const anio  = parseInt(parts[0], 10);
+  return `del ${dia} de ${MESES[mes - 1]} de ${anio}`;
 }
 
 function hdr(text: string): object {
@@ -48,11 +64,14 @@ function cel(text: string, fontSize = 11): object {
  * Construye el body de la tabla de actividades replicando construirTabla() del legacy.
  * Cada ActividadEspecifica puede tener N ActividadesRealizadas;
  * se usa rowSpan en las columnas No./Actividad/Avance para el primer sub-row del grupo.
+ *
+ * Evidencias (Issue 1 — verificado contra crear_lista_evidencias() del legacy):
+ *   tipo 'enlace' → texto "Evidencia N" con link, azul subrayado (igual al urlRegex branch)
+ *   tipo 'texto'  → texto en itálicas (igual al texto plano branch)
  */
 function construirTablaActividades(actividades: ActividadItem[]): object[][] {
   const body: object[][] = [];
 
-  // Encabezado — idéntico al legacy
   body.push([
     { text: 'No.',                                               style: 'actividadesHeader' },
     { text: 'ACTIVIDADES ESPECÍFICAS DEL VÍNCULO CONTRACTUAL',  style: 'actividadesHeader' },
@@ -67,39 +86,55 @@ function construirTablaActividades(actividades: ActividadItem[]): object[][] {
   for (let i = 0; i < actividades.length; i++) {
     const act = actividades[i];
     const realizadas = act.actividadesRealizadas.filter((ar) => ar.activo);
-    const count = Math.max(realizadas.length, 1); // al menos 1 fila por actividad
+    const count = Math.max(realizadas.length, 1);
 
     for (let j = 0; j < count; j++) {
       const ar = realizadas[j];
 
-      // Lista de evidencias — bullet list con '•', igual al legacy
+      // Evidencias — replicando create_lista_evidencias() del legacy:
+      //   URL → "Evidencia N" azul con link (aquí: tipo 'enlace')
+      //   texto plano → itálicas (aquí: tipo 'texto')
       const evidenciasStack = ar
-        ? ar.evidencias.map((ev) => ({
-            columns: [
-              { width: 8, text: '\u2022', margin: [0, 1, 0, 0] },
-              {
-                width: '*',
-                text: ev.tipo === 'enlace' ? `[Enlace] ${ev.valor}` : ev.valor,
-                italics: true,
-                margin: [0, 0, 0, 2],
-                style: 'actividadesText',
-              },
-            ],
-            columnGap: 2,
-          }))
+        ? ar.evidencias.map((ev, evIdx) => {
+            const content =
+              ev.tipo === 'enlace'
+                ? {
+                    width: '*',
+                    text: `Evidencia ${evIdx + 1}`,
+                    link: ev.valor,
+                    color: '#0645AD',
+                    decoration: 'underline',
+                    bold: true,
+                    margin: [0, 0, 0, 2],
+                    style: 'actividadesText',
+                  }
+                : {
+                    width: '*',
+                    text: ev.valor,
+                    italics: true,
+                    margin: [0, 0, 0, 2],
+                    style: 'actividadesText',
+                  };
+            return {
+              columns: [
+                { width: 8, text: '\u2022', margin: [0, 1, 0, 0] },
+                content,
+              ],
+              columnGap: 2,
+            };
+          })
         : [];
 
       body.push([
-        {},  // No.             → rowSpan, relleno abajo
-        {},  // Actividad esp.  → rowSpan, relleno abajo
-        {},  // Avance          → rowSpan, relleno abajo
+        {},
+        {},
+        {},
         ar ? { text: ar.actividad,        style: 'actividadesText' } : { text: '' },
         ar ? { text: ar.productoAsociado, style: 'actividadesText' } : { text: '' },
         ar ? { stack: evidenciasStack }                              : { text: '' },
       ]);
     }
 
-    // Primera fila del grupo: rellena con rowSpan (comportamiento legacy)
     body[rowIdx][0] = { rowSpan: count, text: String(i + 1), bold: true, alignment: 'center', style: 'actividadesText' };
     body[rowIdx][1] = { rowSpan: count, text: act.actividadEspecifica || '—',                 style: 'actividadesText' };
     body[rowIdx][2] = { rowSpan: count, text: `${act.avance}%`, alignment: 'center',          style: 'actividadesText' };
@@ -110,63 +145,60 @@ function construirTablaActividades(actividades: ActividadItem[]): object[][] {
   return body;
 }
 
+// ── Nombre del archivo de descarga ────────────────────────────────────────────
+
+export function buildFilename(informe: InformeData): string {
+  return `certificado-cumplido-${informe.numeroContrato.replace('/', '-')}-${informe.mes}-${informe.ano}.pdf`;
+}
+
 // ── Función principal ─────────────────────────────────────────────────────────
 
 /**
- * Genera y descarga el PDF del certificado de cumplido.
- *
- * No modifica InformeData ni DetalleContrato: los usa tal como están.
- * El supervisor se obtiene del DetalleContrato del mismo pagoMensualId.
+ * Construye y devuelve el documento pdfmake (TCreatedPdf) listo para
+ * getDataUrl() o download().  El llamador decide si descarga directamente
+ * o muestra un visor previo (Issue 7 — patrón del legacy).
  */
-export function generarCertificadoPDF(
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function crearCertificadoPDF(
   informe: InformeData,
   detalle: DetalleContrato | null,
   proceso: string,
   periodoInicio: string,
   periodoFin: string,
   actividades: ActividadItem[],
-): void {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+): any {
   const supervisor = detalle?.supervisor ?? '—';
 
-  // Helvetica es fuente estándar PDF (Type1); no requiere VFS.
-  // Llamada aquí (no en módulo top-level) para garantizar que pdfMake está listo.
-  pdfMake.addFonts({
-    Helvetica: {
-      normal:      'Helvetica',
-      bold:        'Helvetica-Bold',
-      italics:     'Helvetica-Oblique',
-      bolditalics: 'Helvetica-BoldOblique',
-    },
-  });
+  pdfMake.addFontContainer(RobotoFontContainer);
 
-  // Se tipea como 'any' para evitar la complejidad del tipo TDocumentDefinitions
-  // (que @types/pdfmake no re-exporta). La estructura sí es correcta según la spec.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const docDefinition: any = {
-    // Formato FOLIO (215.9 × 330.2 mm), landscape — igual al legacy
     pageSize:        'FOLIO',
     pageOrientation: 'landscape',
     pageMargins:     [10, 10, 10, 10],
 
-    defaultStyle: { font: 'Helvetica', fontSize: 10 },
+    // Legacy (pdfmakeoas@0.0.2) usaba Roboto por defecto sin declararlo explícitamente.
+    // Lo declaramos aquí para garantizar que pdfmake@0.3.x lo use igual.
+    defaultStyle: { font: 'Roboto', fontSize: 10 },
 
     content: [
 
       // ── 1. Encabezado institucional ────────────────────────────────────────
+      // Issue 6: logos reales base64 extraídos del legacy (mismo que el PDF real).
       // Legacy: { rowSpan:3, image:'logo_ud', width:70, height:60 }
-      // Sandbox: celda de texto. En producción reemplazar con image+base64.
       {
         style: 'tableHeader',
         table: {
-          widths: [80, '*', 'auto', 80],
+          widths: ['*', 'auto', 'auto', '*'],
           heights: 19,
           headerRows: 1,
           body: [
             [
-              { rowSpan: 3, text: '[Logo U.D.]', bold: true, alignment: 'center', margin: [0, 16, 0, 0], fontSize: 9, color: '#999999' },
+              { rowSpan: 3, image: 'logo_ud',   width: 70,  height: 60 },
               { text: 'CERTIFICADO DE CUMPLIMIENTO E INFORME DE GESTIÓN', bold: true, margin: [0, 2, 0, 0] },
               { text: 'Código: PEI-PR-003-FR-009',                         margin: [0, 3, 0, 0] },
-              { rowSpan: 3, text: '[SIGUD]',   bold: true, alignment: 'center', margin: [0, 16, 0, 0], fontSize: 9, color: '#999999' },
+              { rowSpan: 3, image: 'logo_sigud', width: 150, height: 60 },
             ],
             ['', { text: 'Macroproceso: Direccionamiento Estratégico',                     margin: [0, 3, 0, 0] }, { text: 'Versión: 02',                      margin: [0, 3, 0, 0] }, ''],
             ['', { text: 'Proceso: Planeación Estratégica e Institucional', margin: [22, 3, 0, 0] }, { text: 'Fecha de Aprobación: 14/03/2022', margin: [35, 3, 0, 0] }, ''],
@@ -175,6 +207,8 @@ export function generarCertificadoPDF(
       },
 
       // ── 2. Número de contrato ──────────────────────────────────────────────
+      // Issue 4: la 4ª celda lleva el formato largo "del D de Mes de YYYY"
+      // igual al utils.formatoFecha() del legacy (FechaCPS → sandbox: fechaInicio).
       {
         columns: [
           { width: 125, text: '' },
@@ -188,7 +222,7 @@ export function generarCertificadoPDF(
                 hdr('CONTRATO DE PRESTACIÓN DE SERVICIOS'),
                 hdr('C.P.S. No.'),
                 cel(informe.numeroContrato),
-                cel(fmt(informe.fechaInicio)),
+                cel(fmtLargo(informe.fechaInicio)),
               ]],
             },
           },
@@ -197,6 +231,8 @@ export function generarCertificadoPDF(
       },
 
       // ── 3. Información contractual ─────────────────────────────────────────
+      // Issue 2: se agrega la 5ª fila CDP/RP (línea 951 del legacy).
+      // CDP y RP vienen de la API de preliquidación; en el sandbox se usa placeholder.
       {
         style: 'tableContractInfo',
         table: {
@@ -230,6 +266,16 @@ export function generarCertificadoPDF(
               hdr('HASTA:'),
               cel(fmt(periodoFin)),
             ],
+            // Fila CDP / RP — siempre presente (legacy línea 951)
+            [
+              hdr('DISPONIBILIDAD PRESUPUESTAL'),
+              cel('(CDP — API preliquidación)'),
+              { colSpan: 2, ...hdr('CERTIFICADO REGISTRO PRESUPUESTAL:') },
+              {},
+              { colSpan: 3, ...cel('(RP — API preliquidación)') },
+              {},
+              {},
+            ],
           ],
         },
       },
@@ -248,16 +294,34 @@ export function generarCertificadoPDF(
       },
 
       // ── 5. Tabla de actividades ────────────────────────────────────────────
+      // El legacy usaba [28, 135, 70, 210, 145, '*'] con evidencias crudas (rutas/URLs largas).
+      // Anchos por contenido real (FOLIO horizontal, 916pt útiles):
+      //   No.=28 | Act.específicas=*(~373) | %avance=70 | Act.realizadas=195 | Producto=130 | Evidencias=120
+      // %avance=70 (igual al legacy): "PORCENTAJE" cabe en 1 línea, "DE AVANCE" en la 2ª.
+      // Evidencias=120 (~26 chars/línea): texto plano largo cabe en ~4 líneas.
       {
         style: 'tableContractInfo',
         table: {
           dontBreakRows: true,
-          widths: [28, 135, 70, 210, 145, '*'],
+          widths: [28, '*', 70, 195, 130, 120],
           body: construirTablaActividades(actividades),
         },
       },
 
-      // ── 6. Sección de certificación ────────────────────────────────────────
+      // ── 6. Novedades postcontractuales ─────────────────────────────────────
+      // Issue 3: el legacy siempre incluye este bloque (tablaNovedades()).
+      // En el sandbox no hay novedades — se muestra solo el encabezado, igual que
+      // cuando novedadesInforme.length === 0 en el legacy.
+      {
+        style: 'tableContractInfo',
+        table: {
+          dontBreakRows: true,
+          widths: ['*'],
+          body: [[{ text: 'NOVEDADES POSTCONTRACTUALES', style: 'actividadesHeader' }]],
+        },
+      },
+
+      // ── 7. Sección de certificación ────────────────────────────────────────
       {
         style: 'tableContractInfo',
         table: {
@@ -285,7 +349,7 @@ export function generarCertificadoPDF(
             [
               {
                 colSpan: 8,
-                text: `Viene cumpliendo a satisfacción con el objeto establecido en el contrato de prestación de servicios No. ${informe.numeroContrato} (${fmt(informe.fechaInicio)}).`,
+                text: `Viene cumpliendo a satisfacción con el objeto establecido en el contrato de prestación de servicios No. ${informe.numeroContrato} ${fmtLargo(informe.fechaInicio)}.`,
                 alignment: 'justify', fontSize: 11, margin: [0, 5, 0, 0],
               },
               {}, {}, {}, {}, {}, {}, {},
@@ -320,7 +384,7 @@ export function generarCertificadoPDF(
         },
       },
 
-      // ── 7. Firmas ──────────────────────────────────────────────────────────
+      // ── 8. Firmas ──────────────────────────────────────────────────────────
       {
         margin: [0, 20, 0, 0],
         columns: [
@@ -376,8 +440,13 @@ export function generarCertificadoPDF(
         margin:    [0, 3, 0, 3],
       },
     },
+
+    // Issue 6: logos institucionales base64 — idénticos al legacy.
+    images: {
+      logo_ud:    LOGO_UD,
+      logo_sigud: LOGO_SIGUD,
+    },
   };
 
-  const filename = `certificado-cumplido-${informe.numeroContrato.replace('/', '-')}-${informe.mes}-${informe.ano}.pdf`;
-  pdfMake.createPdf(docDefinition).download(filename);
+  return pdfMake.createPdf(docDefinition);
 }
