@@ -32,8 +32,13 @@ export class SoportesPanelComponent {
   readonly aprobar = output<number>();
   readonly rechazar = output<number>();
 
+  readonly actionableEstados = input<string[]>(['PRS']);
+
   readonly abierto = computed(() => this.item() !== null);
-  readonly esPRS = computed(() => this.item()?.estado === 'PRS');
+  readonly esAccionable = computed(() => {
+    const est = this.item()?.estado;
+    return est !== undefined && this.actionableEstados().includes(est);
+  });
 
   readonly observaciones = signal<Partial<Record<number, string>>>({});
 

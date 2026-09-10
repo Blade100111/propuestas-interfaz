@@ -95,8 +95,8 @@
       }
     </div>
 
-    <!-- Action bar — only for PRS items -->
-    @if (esPRS()) {
+    <!-- Action bar — only for actionable-state items -->
+    @if (esAccionable()) {
       <div class="shrink-0 border-t border-gray-200 px-5 py-4">
         <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
           <button type="button" [class]="dangerOutlineBtnCls" (click)="onRechazar()">

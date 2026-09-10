@@ -42,6 +42,13 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'gestion-ordenador/bandeja',
+    loadComponent: () =>
+      import('./gestion-ordenador/bandeja/bandeja-ordenador.component').then(
+        (m) => m.BandejaOrdenadorComponent,
+      ),
+  },
+  {
     path: '**',
     redirectTo: 'gestion-contratista/contratos',
   },

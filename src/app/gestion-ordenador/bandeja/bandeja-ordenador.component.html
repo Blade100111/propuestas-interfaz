@@ -1,0 +1,336 @@
+<div class="min-h-screen bg-gray-50">
+
+  <!-- ── Header ─────────────────────────────────────────────────────────── -->
+  <header class="border-b border-gray-200 bg-white px-4 sm:px-6 lg:px-8">
+    <div [class]="hdrCls">
+      <h1 class="text-xl font-bold tracking-tight text-gray-900">Aprobacion de cumplidos</h1>
+      <p class="mt-0.5 text-sm text-gray-500">
+        Jorge Enrique Ramirez Castillo
+        <span class="mx-1 text-gray-300">&middot;</span>
+        Ordenador del Gasto
+      </p>
+    </div>
+  </header>
+
+  <!-- ── Main ────────────────────────────────────────────────────────────── -->
+  <main [class]="mainCls">
+
+    <!-- ── Filtros ── -->
+    <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end">
+
+      <!-- Dependencia -->
+      <div class="w-full sm:w-72">
+        <label
+          for="filtro-dep"
+          class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-400"
+        >
+          Dependencia
+        </label>
+        <select
+          id="filtro-dep"
+          [class]="selectCls"
+          [value]="filtroDependencia()"
+          (change)="filtroDependencia.set($any($event.target).value)"
+        >
+          <option value="">Todas las dependencias</option>
+          @for (dep of dependencias; track dep) {
+            <option [value]="dep">{{ dep }}</option>
+          }
+        </select>
+      </div>
+
+      <!-- Busqueda -->
+      <div class="flex-1">
+        <app-search-input
+          placeholder="Buscar por nombre, documento, contrato o dependencia"
+          ariaLabel="Buscar cumplidos"
+          [value]="busqueda()"
+          (valueChange)="busqueda.set($event)"
+        />
+      </div>
+
+    </div>
+
+    <!-- Empty state: sin datos -->
+    @if (!cargando() && cumplidos().length === 0) {
+      <app-empty-state
+        title="Sin cumplidos pendientes"
+        description="No hay solicitudes en estado Aprobado por supervisor asignadas a su ordenacion."
+        paddingClass="py-20"
+      >
+        <svg class="h-8 w-8 text-gray-400" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="1.5"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
+          <rect x="9" y="3" width="6" height="4" rx="1"/>
+          <line x1="9" y1="12" x2="15" y2="12"/>
+          <line x1="9" y1="16" x2="13" y2="16"/>
+        </svg>
+      </app-empty-state>
+    }
+
+    <!-- Empty state: sin resultados de busqueda -->
+    @else if (!cargando() && cumplidosFiltrados().length === 0) {
+      <app-empty-state
+        title="Sin resultados"
+        description="Ningun cumplido coincide con los filtros aplicados."
+      >
+        <svg class="h-8 w-8 text-gray-400" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="1.5"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 15.803 7.5 7.5 0 0015.803 15.803z"/>
+        </svg>
+      </app-empty-state>
+    }
+
+    <!-- Tabla -->
+    @else {
+      <!-- ── Seleccionar todos ── -->
+      @if (asCount() > 0) {
+        <div class="mb-3 flex items-center gap-2.5 rounded-lg border border-gray-200 bg-white px-4 py-2.5 shadow-sm">
+          <input
+            type="checkbox"
+            id="select-all"
+            [class]="checkboxCls"
+            [checked]="allAsSelected()"
+            (change)="toggleSelectAll()"
+            [attr.aria-label]="allAsSelected() ? 'Deseleccionar todos' : 'Seleccionar todos los pendientes'"
+          />
+          <label for="select-all" class="cursor-pointer select-none text-sm text-gray-700">
+            Seleccionar todos los pendientes
+            <span class="ml-1 text-gray-400">({{ asCount() }} con estado AS)</span>
+          </label>
+          @if (selectedCount() > 0 && !allAsSelected()) {
+            <span class="ml-auto text-xs text-gray-400">
+              {{ selectedCount() }} de {{ asCount() }} seleccionado{{ selectedCount() !== 1 ? 's' : '' }}
+            </span>
+          }
+        </div>
+      }
+
+      <app-data-table
+        [columns]="tableColumns"
+        [rows]="cumplidosFiltrados()"
+        [loading]="cargando()"
+        [skeletonRows]="8"
+        ariaLabel="Cumplidos pendientes de aprobacion por ordenador"
+        [sortColumn]="sortColumn()"
+        [sortDirection]="sortDirection()"
+        [footerText]="footerText()"
+        (sortChange)="sortBy($event)"
+      >
+
+        <!-- ── Celdas desktop ── -->
+        <ng-template appTableRow let-cumplido>
+
+          <!-- Checkbox -->
+          <td class="w-10 py-4 pl-5 pr-0 text-center">
+            @if (cumplido.estado === 'AS') {
+              <input
+                type="checkbox"
+                [class]="checkboxCls"
+                [checked]="isSelected(cumplido.pagoMensualId)"
+                (change)="toggleSelect(cumplido.pagoMensualId)"
+                [attr.aria-label]="'Seleccionar ' + cumplido.nombreContratista"
+              />
+            }
+          </td>
+
+          <!-- Dependencia -->
+          <td class="hidden px-3 py-4 text-center lg:table-cell">
+            <span class="text-sm text-gray-700">{{ cumplido.dependencia }}</span>
+          </td>
+
+          <!-- Rubro -->
+          <td class="hidden px-3 py-4 text-center lg:table-cell">
+            <span [class]="rubroBadgeClass(cumplido.rubro)">{{ rubroLabel(cumplido.rubro) }}</span>
+          </td>
+
+          <!-- Documento -->
+          <td class="px-3 py-4 text-center">
+            <span class="tabular-nums text-sm text-gray-600">{{ cumplido.documento }}</span>
+          </td>
+
+          <!-- Nombre -->
+          <td class="px-3 py-4 text-left">
+            <span class="text-sm font-medium text-gray-900">{{ cumplido.nombreContratista }}</span>
+          </td>
+
+          <!-- N° Contrato -->
+          <td class="px-3 py-4 text-center">
+            @if (cumplido.esOtroSi) {
+              <span class="mr-1 select-none text-gray-300" aria-hidden="true">↳</span>
+            }
+            <span class="tabular-nums text-sm font-bold text-gray-900">
+              {{ cumplido.numeroContrato }}
+            </span>
+          </td>
+
+          <!-- Vigencia -->
+          <td class="hidden px-3 py-4 text-center lg:table-cell">
+            <span class="tabular-nums text-sm text-gray-600">{{ cumplido.vigencia }}</span>
+          </td>
+
+          <!-- Mes -->
+          <td class="px-3 py-4 text-center">
+            <span class="text-sm text-gray-600">{{ cumplido.mesNombre }}</span>
+          </td>
+
+          <!-- Año -->
+          <td class="px-3 py-4 text-center">
+            <span class="tabular-nums text-sm text-gray-600">{{ cumplido.ano }}</span>
+          </td>
+
+          <!-- Estado -->
+          <td class="px-3 py-4 text-center">
+            <app-estado-chip [estado]="cumplido.estado" />
+          </td>
+
+          <!-- Acciones -->
+          <td class="py-4 pl-3 pr-5 text-center">
+            <button
+              [class]="accionBtnClass(cumplido.estado)"
+              (click)="abrirPanel(cumplido)"
+              type="button"
+              [attr.aria-label]="accionBtnLabel(cumplido.estado) + ' — ' + cumplido.nombreContratista"
+            >
+              {{ accionBtnLabel(cumplido.estado) }}
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none"
+                   stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M6 4l4 4-4 4"/>
+              </svg>
+            </button>
+          </td>
+
+        </ng-template>
+
+        <!-- ── Tarjetas mobile ── -->
+        <ng-template appTableCard let-cumplido>
+          <li class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+            <div class="p-4">
+
+              <!-- Card header: checkbox + nombre + estado -->
+              <div class="flex items-start gap-3">
+                <div class="mt-0.5 w-4 shrink-0">
+                  @if (cumplido.estado === 'AS') {
+                    <input
+                      type="checkbox"
+                      [class]="checkboxCls"
+                      [checked]="isSelected(cumplido.pagoMensualId)"
+                      (change)="toggleSelect(cumplido.pagoMensualId)"
+                      [attr.aria-label]="'Seleccionar ' + cumplido.nombreContratista"
+                    />
+                  }
+                </div>
+                <div class="flex min-w-0 flex-1 items-start justify-between gap-3">
+                  <div class="min-w-0">
+                    <p class="truncate text-sm font-bold text-gray-900">
+                      {{ cumplido.nombreContratista }}
+                    </p>
+                    <p class="mt-0.5 text-xs text-gray-500">{{ cumplido.documento }}</p>
+                  </div>
+                  <app-estado-chip [estado]="cumplido.estado" />
+                </div>
+              </div>
+
+              <!-- Detalles -->
+              <dl class="mt-3 grid grid-cols-2 gap-x-4 gap-y-2.5 border-t border-gray-100 pt-3">
+                <div>
+                  <dt class="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                    Contrato
+                  </dt>
+                  <dd class="tabular-nums mt-0.5 text-xs font-bold text-gray-900">
+                    {{ cumplido.numeroContrato }}
+                  </dd>
+                </div>
+                <div>
+                  <dt class="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                    Periodo
+                  </dt>
+                  <dd class="mt-0.5 text-xs text-gray-700">
+                    {{ cumplido.mesNombre }} {{ cumplido.ano }}
+                  </dd>
+                </div>
+                <div>
+                  <dt class="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                    Dependencia
+                  </dt>
+                  <dd class="mt-0.5 text-xs text-gray-700">{{ cumplido.dependencia }}</dd>
+                </div>
+                <div>
+                  <dt class="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                    Rubro
+                  </dt>
+                  <dd class="mt-0.5">
+                    <span [class]="rubroBadgeClass(cumplido.rubro)">
+                      {{ rubroLabel(cumplido.rubro) }}
+                    </span>
+                  </dd>
+                </div>
+              </dl>
+
+              <!-- Accion -->
+              <div class="mt-3 flex justify-end">
+                <button
+                  [class]="accionBtnClass(cumplido.estado)"
+                  (click)="abrirPanel(cumplido)"
+                  type="button"
+                  style="min-width: auto"
+                >
+                  {{ accionBtnLabel(cumplido.estado) }}
+                  <svg width="13" height="13" viewBox="0 0 16 16" fill="none"
+                       stroke="currentColor" stroke-width="2"
+                       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M6 4l4 4-4 4"/>
+                  </svg>
+                </button>
+              </div>
+
+            </div>
+          </li>
+        </ng-template>
+
+      </app-data-table>
+
+      <!-- ── Aprobacion masiva ── -->
+      <div class="mt-4 flex items-center justify-end gap-4">
+        @if (selectedCount() > 0) {
+          <span class="text-sm text-gray-500">
+            {{ selectedCount() }} seleccionado{{ selectedCount() !== 1 ? 's' : '' }}
+          </span>
+        }
+        <button
+          type="button"
+          [class]="aprobarSelBtnCls"
+          [disabled]="selectedCount() === 0"
+          (click)="handleAprobarSeleccionados()"
+        >
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"
+               stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M13 4L6 11l-3-3"/>
+          </svg>
+          Aprobar seleccionados
+          @if (selectedCount() > 0) {
+            ({{ selectedCount() }})
+          }
+        </button>
+      </div>
+    }
+
+  </main>
+
+  <!-- ── Side panel ──────────────────────────────────────────────────────── -->
+  <app-soportes-panel
+    [item]="panelData()"
+    [actionableEstados]="panelActionableEstados"
+    (cerrar)="cerrarPanel()"
+    (aprobar)="handleAprobar($event)"
+    (rechazar)="handleRechazar($event)"
+  />
+
+  <!-- ── Confirm dialog ─────────────────────────────────────────────────── -->
+  <app-confirm-dialog />
+
+</div>
