@@ -19,7 +19,7 @@ import { Component, input, output } from '@angular/core';
   standalone: true,
   host: { class: 'block' },
   template: `
-    <div class="relative max-w-sm">
+    <div class="relative max-w-md">
       <div
         class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"
         aria-hidden="true"
