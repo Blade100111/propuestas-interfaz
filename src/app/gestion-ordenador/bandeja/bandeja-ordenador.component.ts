@@ -454,7 +454,7 @@ export class BandejaOrdenadorComponent {
   }
 
   rubroLabel(rubro: string): string {
-    return rubro === 'INVERSION' ? 'Inversion' : 'Funcionamiento';
+    return rubro === 'INVERSION' ? 'Inversi\u00f3n' : 'Funcionamiento';
   }
 
   accionBtnClass(estado: string): string {

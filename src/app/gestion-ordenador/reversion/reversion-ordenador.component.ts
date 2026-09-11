@@ -367,7 +367,7 @@ export class ReversionOrdenadorComponent {
   }
 
   rubroLabel(rubro: string): string {
-    return rubro === 'INVERSION' ? 'Inversion' : 'Funcionamiento';
+    return rubro === 'INVERSION' ? 'Inversi\u00f3n' : 'Funcionamiento';
   }
 
   // ── Sorting ────────────────────────────────────────────────────────────────

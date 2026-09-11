@@ -56,6 +56,11 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'historico',
+    loadComponent: () =>
+      import('./historico/historico.component').then((m) => m.HistoricoComponent),
+  },
+  {
     path: '**',
     redirectTo: 'gestion-contratista/contratos',
   },
