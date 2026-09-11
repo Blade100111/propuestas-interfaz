@@ -1,6 +1,10 @@
 import { Component, computed, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { EstadoChipComponent } from '../../shared/components/estado-chip.component';
+import {
+  SingleSelectDropdownComponent,
+  SingleSelectOption,
+} from '../../shared/components/single-select-dropdown.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state.component';
 import {
   DataTableComponent,
@@ -58,7 +62,7 @@ const MOCK_SOLICITUDES: SolicitudMock[] = [
 @Component({
   selector: 'app-solicitudes-contratista',
   standalone: true,
-  imports: [EstadoChipComponent, EmptyStateComponent, DataTableComponent, TableRowDirective, TableCardDirective, TabBarComponent],
+  imports: [EstadoChipComponent, EmptyStateComponent, DataTableComponent, TableRowDirective, TableCardDirective, TabBarComponent, SingleSelectDropdownComponent],
   templateUrl: './solicitudes-contratista.component.html',
 })
 export class SolicitudesContratistaComponent {
@@ -73,14 +77,18 @@ export class SolicitudesContratistaComponent {
   readonly primaryBtnCls =
     'inline-flex items-center justify-center gap-1.5 rounded-md bg-[#731514] px-3 py-2 text-sm font-semibold text-white shadow-sm transition-colors duration-150 hover:bg-[#5e1212] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#731514]';
 
-  readonly primaryBtnFullCls =
-    'w-full inline-flex items-center justify-center gap-2 rounded-md bg-[#731514] px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-[#5e1212] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#731514]';
 
   readonly verSoporteBtnCls =
-    'inline-flex items-center justify-center gap-1.5 min-w-[10.5rem] rounded-md bg-[#731514] px-3 py-1.5 text-sm font-semibold text-white shadow-sm transition-colors duration-150 hover:bg-[#5e1212] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#731514]';
+    'inline-flex items-center justify-center gap-1.5 min-w-[10.5rem] rounded-md border border-[#731514] bg-white px-2.5 py-1.5 text-xs font-semibold text-[#731514] transition-colors duration-150 hover:bg-[#731514]/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#731514]';
 
   readonly verEstadoBtnCls =
-    'inline-flex items-center justify-center gap-1.5 min-w-[10.5rem] rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-600 transition-colors duration-150 hover:bg-gray-50 hover:border-gray-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#731514]';
+    'inline-flex items-center justify-center gap-1.5 min-w-[10.5rem] rounded-md border border-gray-900 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-900 transition-colors duration-150 hover:bg-gray-900/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#731514]';
+
+  readonly verSoporteFullBtnCls =
+    'w-full inline-flex justify-center items-center gap-1.5 rounded-md border border-[#731514] bg-white px-4 py-2.5 text-sm font-semibold text-[#731514] transition-colors duration-150 hover:bg-[#731514]/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#731514]';
+
+  readonly verEstadoFullBtnCls =
+    'w-full inline-flex justify-center items-center gap-1.5 rounded-md border border-gray-900 bg-white px-4 py-2.5 text-sm font-medium text-gray-900 transition-colors duration-150 hover:bg-gray-900/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#731514]';
 
   readonly selectCls =
     'block rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm transition-colors duration-150 focus:border-[#731514] focus:outline-none focus:ring-2 focus:ring-[#731514]/30';
@@ -156,6 +164,11 @@ export class SolicitudesContratistaComponent {
   // ── Static data ────────────────────────────────────────────────────────────
   readonly meses = MESES;
   readonly anios = ANIOS;
+  readonly aniosOptions: SingleSelectOption[] = ANIOS.map((a) => ({ value: String(a), label: String(a) }));
+  readonly mesesOptions: SingleSelectOption[] = MESES.map((m) => ({ value: String(m.value), label: m.label }));
+
+  readonly formAnioStr = computed(() => (this.formAnio() != null ? String(this.formAnio()) : ''));
+  readonly formMesStr = computed(() => (this.formMes() != null ? String(this.formMes()) : ''));
 
   // ── Route params ───────────────────────────────────────────────────────────
   readonly numeroContrato: string;
@@ -228,6 +241,10 @@ export class SolicitudesContratistaComponent {
     return estado === 'CD' || estado === 'RS' ? this.verSoporteBtnCls : this.verEstadoBtnCls;
   }
 
+  accionBtnFullClass(estado: EstadoCode): string {
+    return estado === 'CD' || estado === 'RS' ? this.verSoporteFullBtnCls : this.verEstadoFullBtnCls;
+  }
+
   accionBtnLabel(estado: EstadoCode): string {
     if (estado === 'CD') return 'Cargar soportes';
     if (estado === 'RS') return 'Corregir soportes';
@@ -235,14 +252,12 @@ export class SolicitudesContratistaComponent {
   }
 
   // ── Form ──────────────────────────────────────────────────────────────────
-  setFormAnio(event: Event): void {
-    const val = (event.target as HTMLSelectElement).value;
+  setFormAnio(val: string): void {
     this.formAnio.set(val ? parseInt(val, 10) : null);
     this.formError.set(null);
   }
 
-  setFormMes(event: Event): void {
-    const val = (event.target as HTMLSelectElement).value;
+  setFormMes(val: string): void {
     this.formMes.set(val ? parseInt(val, 10) : null);
     this.formError.set(null);
   }

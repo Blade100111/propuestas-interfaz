@@ -38,6 +38,14 @@
     caret-color: #731514;
   }
 
+  input[type='checkbox'],
+  input[type='radio'],
+  input[type='date'],
+  input[type='time'],
+  input[type='range'] {
+    accent-color: #731514;
+  }
+
   /* Scrollbar — tab rail */
   .tab-rail {
     scrollbar-width: none;

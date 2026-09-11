@@ -10,6 +10,7 @@ import {
 } from '../../shared/components/data-table.component';
 import { SessionService } from '../../shared/services/session.service';
 import { MAIN_WIDE, HDR_WIDE } from '../../shared/layout';
+import { OUTLINE_CRIMSON_BTN } from '../../shared/action-btn';
 
 type SortCol = 'numero' | 'vigencia' | 'tipo' | 'dependencia';
 
@@ -122,10 +123,9 @@ export class ContratosContratistaComponent {
   readonly hdrCls = HDR_WIDE;
 
   // ── Literal class strings — TW scanner requires these to be literals ──────
-  readonly primaryBtnCls =
-    'inline-flex items-center gap-1.5 rounded-md bg-[#731514] px-3 py-1.5 text-sm font-semibold text-white shadow-sm transition-colors duration-150 hover:bg-[#5e1212] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#731514]';
+  readonly primaryBtnCls = OUTLINE_CRIMSON_BTN;
   readonly primaryBtnFullCls =
-    'w-full inline-flex items-center justify-center gap-2 rounded-md bg-[#731514] px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-[#5e1212] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#731514]';
+    'w-full inline-flex justify-center items-center gap-1.5 rounded-md border border-[#731514] bg-white px-4 py-2.5 text-sm font-semibold text-[#731514] transition-colors duration-150 hover:bg-[#731514]/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#731514]';
   readonly tipoBadgeInicialCls =
     'inline-flex shrink-0 items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-500';
   readonly tipoBadgeOtroSiCls =

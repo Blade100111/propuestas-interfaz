@@ -29,21 +29,23 @@
       <div class="flex flex-wrap items-end gap-3">
         <div class="flex flex-col gap-1">
           <label class="text-xs font-medium text-gray-600" for="sel-anio">Año</label>
-          <select [class]="selectCls" id="sel-anio" (change)="setFormAnio($event)">
-            <option value="">— año —</option>
-            @for (a of anios; track a) {
-              <option [value]="a">{{ a }}</option>
-            }
-          </select>
+          <app-single-select
+            id="sel-anio"
+            [options]="aniosOptions"
+            [value]="formAnioStr()"
+            placeholder="— año —"
+            (valueChange)="setFormAnio($event)"
+          />
         </div>
         <div class="flex flex-col gap-1">
           <label class="text-xs font-medium text-gray-600" for="sel-mes">Mes</label>
-          <select [class]="selectCls" id="sel-mes" (change)="setFormMes($event)">
-            <option value="">— mes —</option>
-            @for (m of meses; track m.value) {
-              <option [value]="m.value">{{ m.label }}</option>
-            }
-          </select>
+          <app-single-select
+            id="sel-mes"
+            [options]="mesesOptions"
+            [value]="formMesStr()"
+            placeholder="— mes —"
+            (valueChange)="setFormMes($event)"
+          />
         </div>
         <button [class]="primaryBtnCls" (click)="crearSolicitud()" type="button">
           Crear solicitud
@@ -148,12 +150,31 @@
               type="button"
               [attr.aria-label]="accionBtnLabel(sol.estado) + ' — ' + sol.mesNombre + ' ' + sol.ano"
             >
-              {{ accionBtnLabel(sol.estado) }}
-              <svg width="13" height="13" viewBox="0 0 16 16" fill="none"
-                   stroke="currentColor" stroke-width="2"
-                   stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M6 4l4 4-4 4"/>
-              </svg>
+              @if (sol.estado === 'CD') {
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none"
+                     stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M8 11V3"/>
+                  <path d="M5 6l3-3 3 3"/>
+                  <path d="M3 13h10"/>
+                </svg>
+                Cargar soportes
+              } @else if (sol.estado === 'RS') {
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none"
+                     stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M10 2l4 4-8 8H2v-4l8-8z"/>
+                </svg>
+                Corregir soportes
+              } @else {
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none"
+                     stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="8" cy="8" r="3"/>
+                  <path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/>
+                </svg>
+                Ver detalle
+              }
             </button>
           </td>
 
@@ -186,17 +207,36 @@
               </dl>
               <div class="mt-4">
                 <button
-                  [class]="primaryBtnFullCls"
+                  [class]="accionBtnFullClass(sol.estado)"
                   (click)="verSoporte(sol.pagoMensualId)"
                   type="button"
                   [attr.aria-label]="accionBtnLabel(sol.estado) + ' — ' + sol.mesNombre + ' ' + sol.ano"
                 >
-                  {{ accionBtnLabel(sol.estado) }}
-                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none"
-                       stroke="currentColor" stroke-width="2"
-                       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M6 4l4 4-4 4"/>
-                  </svg>
+                  @if (sol.estado === 'CD') {
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none"
+                         stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M8 11V3"/>
+                      <path d="M5 6l3-3 3 3"/>
+                      <path d="M3 13h10"/>
+                    </svg>
+                    Cargar soportes
+                  } @else if (sol.estado === 'RS') {
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none"
+                         stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M10 2l4 4-8 8H2v-4l8-8z"/>
+                    </svg>
+                    Corregir soportes
+                  } @else {
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none"
+                         stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <circle cx="8" cy="8" r="3"/>
+                      <path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/>
+                    </svg>
+                    Ver detalle
+                  }
                 </button>
               </div>
             </div>

@@ -3,6 +3,10 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { AutoGrowDirective } from './auto-grow.directive';
 import { EstadoChipComponent } from '../../shared/components/estado-chip.component';
+import {
+  SingleSelectDropdownComponent,
+  SingleSelectOption,
+} from '../../shared/components/single-select-dropdown.component';
 import { MOCK_DETALLES } from '../detalle-soporte/detalle-soporte-contratista.component';
 import { crearCertificadoPDF, buildFilename } from './generar-certificado';
 import { MAIN_WIDE, HDR_WIDE } from '../../shared/layout';
@@ -321,7 +325,7 @@ const MOCK_INFORMES: InformeData[] = [
 @Component({
   selector: 'app-informe-contratista',
   standalone: true,
-  imports: [AutoGrowDirective, EstadoChipComponent],
+  imports: [AutoGrowDirective, EstadoChipComponent, SingleSelectDropdownComponent],
   templateUrl: './informe-contratista.component.html',
 })
 export class InformeContratistaComponent {
@@ -452,6 +456,7 @@ export class InformeContratistaComponent {
   readonly formularioValido = computed(() => this.erroresValidacion().length === 0);
 
   readonly procesos = PROCESOS;
+  readonly procesosOptions: SingleSelectOption[] = PROCESOS.map((p) => ({ value: p, label: p }));
 
   // CD / RS = editable; PRS / AS / AP / RO = read-only.
   // Unified with detalle-soporte: no editing during active review (PRS).

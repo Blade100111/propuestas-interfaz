@@ -1,0 +1,149 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-25T00:00:00Z",
+  "title": "Design System: GAIA – Cumplidos Interface",
+  "extensions": {
+    "colorMeta": {
+      "gaia-crimson":    { "role": "primary",   "displayName": "Gaia Crimson",       "canonical": "#731514", "tonalRamp": ["#1a0504","#2e0a09","#45100d","#5e1212","#731514","#a51d1b","#c94442","#e8908e","#f5c9c8"] },
+      "gaia-crimson-deep": { "role": "primary",  "displayName": "Gaia Crimson Deep",  "canonical": "#5e1212", "tonalRamp": ["#1a0504","#2e0a09","#45100d","#5e1212","#731514","#a51d1b","#c94442","#e8908e","#f5c9c8"] },
+      "danger-scarlet":  { "role": "tertiary",  "displayName": "Danger Scarlet",      "canonical": "#930E10", "tonalRamp": ["#1f0304","#3d0507","#5e0a0b","#7a0c0e","#930E10","#bc2022","#d95557","#edaaab","#f8d9d9"] },
+      "caution-amber":   { "role": "tertiary",  "displayName": "Caution Amber",       "canonical": "#FF9311", "tonalRamp": ["#3d2000","#7a4200","#b36200","#d97a00","#FF9311","#ffb04d","#ffca80","#ffe0b3","#fff4e0"] },
+      "caution-honey":   { "role": "tertiary",  "displayName": "Caution Honey",       "canonical": "#FFB051", "tonalRamp": ["#3d2800","#7a5000","#b37800","#d99a00","#FFB051","#ffc57a","#ffd9a6","#ffeccc","#fff8ee"] },
+      "approval-forest": { "role": "tertiary",  "displayName": "Approval Forest",     "canonical": "#218B22", "tonalRamp": ["#051505","#0d2e0e","#154918","#1a6b1b","#218B22","#2db030","#5ecb5f","#a5e5a6","#d6f5d6"] },
+      "neutral-slate":   { "role": "tertiary",  "displayName": "Neutral Slate",       "canonical": "#6B7280", "tonalRamp": ["#1a1c1e","#2e3135","#3f4349","#545860","#6B7280","#9098a4","#b8bfc9","#d8dce4","#f0f2f5"] },
+      "surface-white":   { "role": "neutral",   "displayName": "Surface White",       "canonical": "#FFFFFF", "tonalRamp": ["#cccccc","#d9d9d9","#e6e6e6","#efefef","#f5f5f5","#f9f9f9","#fbfbfb","#fdfdfd","#FFFFFF"] },
+      "surface-subtle":  { "role": "neutral",   "displayName": "Surface Subtle",      "canonical": "#F9FAFB", "tonalRamp": ["#c0c5cc","#cdd3db","#dae0e8","#e5ebf0","#eff2f5","#F9FAFB","#fafbfc","#fcfcfd","#fefefe"] },
+      "surface-divider": { "role": "neutral",   "displayName": "Surface Divider",     "canonical": "#E5E7EB", "tonalRamp": ["#9ca0a8","#aeb3bc","#bec4cc","#cdd3da","#d9dde3","#E5E7EB","#eef0f2","#f5f6f8","#fafbfc"] },
+      "text-primary":    { "role": "neutral",   "displayName": "Text Primary",        "canonical": "#111827", "tonalRamp": ["#111827","#222d3f","#374151","#4b5563","#6b7280","#9ca3af","#d1d5db","#e5e7eb","#f9fafb"] },
+      "text-body":       { "role": "neutral",   "displayName": "Text Body",           "canonical": "#374151", "tonalRamp": ["#111827","#1e2736","#2d3646","#374151","#4b5563","#6b7280","#9ca3af","#d1d5db","#f3f4f6"] },
+      "text-muted":      { "role": "neutral",   "displayName": "Text Muted",          "canonical": "#6B7280", "tonalRamp": ["#374151","#4b5563","#555f6e","#6B7280","#818a96","#9ca3af","#c2c8d0","#dce0e7","#f3f4f6"] },
+      "text-subdued":    { "role": "neutral",   "displayName": "Text Subdued",        "canonical": "#9CA3AF", "tonalRamp": ["#4b5563","#5f6875","#747d8a","#8a929e","#9CA3AF","#b5bcc6","#cbd0d8","#e0e4ea","#f3f4f6"] }
+    },
+    "typographyMeta": {
+      "body":  { "displayName": "Body",  "purpose": "Standard data display — contract objects, table cell values, card descriptions." },
+      "label": { "displayName": "Label", "purpose": "Column headers and section meta-labels. Uppercase with tracking for scannable table structure." }
+    },
+    "shadows": [
+      { "name": "shadow-sm", "value": "0 1px 2px rgba(0,0,0,0.05)", "purpose": "Applied to mobile card wrappers, the desktop table wrapper, and the sticky tab rail. Minimal lift only." }
+    ],
+    "motion": [
+      { "name": "transition-colors-fast", "value": "color 150ms, background-color 150ms, border-color 150ms", "purpose": "Button hover/active states and tab transitions." },
+      { "name": "transition-row-hover",   "value": "background-color 100ms",                                   "purpose": "Table row hover — subtly faster than button transitions for density." }
+    ],
+    "breakpoints": [
+      { "name": "sm",  "value": "640px",  "notes": "Horizontal padding expands to 24px; year selector appears." },
+      { "name": "md",  "value": "768px",  "notes": "Primary pivot: mobile cards → desktop data table." },
+      { "name": "lg",  "value": "1024px", "notes": "Secondary pivot: Tipo and Vigencia columns appear in the table." }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "GAIA red CTA. Used for actionable contract states (CD, RS) — 'Ver soporte'.",
+      "html": "<button class=\"ds-btn-primary\">Ver soporte <svg width=\"13\" height=\"13\" viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M6 4l4 4-4 4\"/></svg></button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; gap: 6px; background-color: #731514; color: #ffffff; padding: 6px 12px; font-family: Manrope, system-ui, sans-serif; font-size: 14px; font-weight: 600; border: none; border-radius: 6px; cursor: pointer; transition: background-color 150ms; box-shadow: 0 1px 2px rgba(0,0,0,0.05); } .ds-btn-primary:hover { background-color: #5e1212; } .ds-btn-primary:focus-visible { outline: 2px solid #731514; outline-offset: 2px; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Secondary/ghost CTA for non-actionable states (PRS, AS, AP, RO) — 'Ver estado'.",
+      "html": "<button class=\"ds-btn-ghost\">Ver estado <svg width=\"13\" height=\"13\" viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M6 4l4 4-4 4\"/></svg></button>",
+      "css": ".ds-btn-ghost { display: inline-flex; align-items: center; gap: 6px; background-color: #ffffff; color: #4b5563; padding: 6px 12px; font-family: Manrope, system-ui, sans-serif; font-size: 14px; font-weight: 500; border: 1px solid #e5e7eb; border-radius: 6px; cursor: pointer; transition: background-color 150ms, border-color 150ms; } .ds-btn-ghost:hover { background-color: #f9fafb; border-color: #d1d5db; } .ds-btn-ghost:focus-visible { outline: 2px solid #731514; outline-offset: 2px; }"
+    },
+    {
+      "name": "Chip — CD (Creado)",
+      "kind": "chip",
+      "refersTo": "chip-cd",
+      "description": "Initial state, actionable. Amber background with dark text for contrast compliance.",
+      "html": "<span class=\"ds-chip-cd\">Creado</span>",
+      "css": ".ds-chip-cd { display: inline-flex; align-items: center; background-color: #FF9311; color: #111827; padding: 2px 10px; font-family: Manrope, system-ui, sans-serif; font-size: 12px; font-weight: 600; border-radius: 9999px; white-space: nowrap; }"
+    },
+    {
+      "name": "Chip — PRS (En revisión)",
+      "kind": "chip",
+      "refersTo": "chip-prs",
+      "description": "In-review state. Honey background with dark text for contrast compliance.",
+      "html": "<span class=\"ds-chip-prs\">En revisión</span>",
+      "css": ".ds-chip-prs { display: inline-flex; align-items: center; background-color: #FFB051; color: #111827; padding: 2px 10px; font-family: Manrope, system-ui, sans-serif; font-size: 12px; font-weight: 600; border-radius: 9999px; white-space: nowrap; }"
+    },
+    {
+      "name": "Chip — RS (Rechazado Supervisor)",
+      "kind": "chip",
+      "refersTo": "chip-rs",
+      "description": "Supervisor rejection, actionable. Danger Scarlet background, white text.",
+      "html": "<span class=\"ds-chip-rs\">Rechazado Sup.</span>",
+      "css": ".ds-chip-rs { display: inline-flex; align-items: center; background-color: #930E10; color: #ffffff; padding: 2px 10px; font-family: Manrope, system-ui, sans-serif; font-size: 12px; font-weight: 600; border-radius: 9999px; white-space: nowrap; }"
+    },
+    {
+      "name": "Chip — Approved (AS / AP)",
+      "kind": "chip",
+      "refersTo": "chip-success",
+      "description": "Approved states (supervisor or final). Approval Forest background, white text.",
+      "html": "<span class=\"ds-chip-success\">Aprobado</span>",
+      "css": ".ds-chip-success { display: inline-flex; align-items: center; background-color: #218B22; color: #ffffff; padding: 2px 10px; font-family: Manrope, system-ui, sans-serif; font-size: 12px; font-weight: 600; border-radius: 9999px; white-space: nowrap; }"
+    },
+    {
+      "name": "Chip — RO (Rechazado Ordenador)",
+      "kind": "chip",
+      "refersTo": "chip-ro",
+      "description": "Ordered rejection, terminal state. Neutral Slate background, white text.",
+      "html": "<span class=\"ds-chip-ro\">Rechazado Ord.</span>",
+      "css": ".ds-chip-ro { display: inline-flex; align-items: center; background-color: #6B7280; color: #ffffff; padding: 2px 10px; font-family: Manrope, system-ui, sans-serif; font-size: 12px; font-weight: 600; border-radius: 9999px; white-space: nowrap; }"
+    },
+    {
+      "name": "Tab (filter rail)",
+      "kind": "nav",
+      "refersTo": null,
+      "description": "Filter tabs that switch the contract list between payment states. Active tab shows Crimson bottom border.",
+      "html": "<nav class=\"ds-tab-rail\" role=\"tablist\"><button class=\"ds-tab ds-tab--active\" role=\"tab\" aria-selected=\"true\">Todos <span class=\"ds-tab-badge ds-tab-badge--active\">6</span></button><button class=\"ds-tab\" role=\"tab\" aria-selected=\"false\">CD <span class=\"ds-tab-badge\">1</span></button></nav>",
+      "css": ".ds-tab-rail { display: flex; gap: 0; overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid #e5e7eb; } .ds-tab-rail::-webkit-scrollbar { display: none; } .ds-tab { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; padding: 12px 16px; font-family: Manrope, system-ui, sans-serif; font-size: 14px; font-weight: 500; border: none; border-bottom: 2px solid transparent; color: #6b7280; background: transparent; cursor: pointer; transition: color 150ms, border-color 150ms; } .ds-tab:hover { color: #111827; border-bottom-color: #d1d5db; } .ds-tab--active { font-weight: 600; color: #731514; border-bottom-color: #731514; } .ds-tab:focus-visible { outline: 2px solid #731514; outline-offset: 2px; } .ds-tab-badge { display: inline-flex; align-items: center; justify-content: center; padding: 1px 6px; font-size: 11px; font-weight: 700; border-radius: 9999px; background: #f3f4f6; color: #6b7280; line-height: 1; } .ds-tab-badge--active { background: #f3e8e8; color: #731514; }"
+    },
+    {
+      "name": "Contract Card (Mobile)",
+      "kind": "card",
+      "refersTo": null,
+      "description": "Stacked mobile layout for one contract. Replaces the data table below md (768px).",
+      "html": "<li class=\"ds-contract-card\"><div class=\"ds-card-header\"><span class=\"ds-card-number\">789-2025</span><span class=\"ds-chip-cd\">Creado</span></div><p class=\"ds-card-object\">Prestación de servicios profesionales en soporte y mantenimiento de sistemas de información</p><dl class=\"ds-card-grid\"><div><dt>Tipo</dt><dd>Prestación de Servicios</dd></div><div><dt>Vigencia</dt><dd>2025</dd></div><div><dt>Mes</dt><dd>Julio</dd></div></dl><button class=\"ds-btn-primary ds-btn-full\">Ver soporte <svg width=\"14\" height=\"14\" viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M6 4l4 4-4 4\"/></svg></button></li>",
+      "css": ".ds-contract-card { list-style: none; overflow: hidden; border-radius: 12px; border: 1px solid #e5e7eb; background: #ffffff; box-shadow: 0 1px 2px rgba(0,0,0,0.05); padding: 16px; } .ds-card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; } .ds-card-number { font-family: Manrope, system-ui, sans-serif; font-size: 14px; font-weight: 700; color: #111827; font-variant-numeric: tabular-nums; } .ds-card-object { margin-top: 8px; font-family: Manrope, system-ui, sans-serif; font-size: 14px; color: #4b5563; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; } .ds-card-grid { margin-top: 12px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px 8px; padding-top: 12px; border-top: 1px solid #f3f4f6; } .ds-card-grid dt { font-family: Manrope, system-ui, sans-serif; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #9ca3af; } .ds-card-grid dd { margin-top: 2px; font-family: Manrope, system-ui, sans-serif; font-size: 12px; color: #374151; } .ds-btn-full { width: 100%; justify-content: center; margin-top: 16px; padding: 10px 16px; font-size: 14px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Trusted Registry",
+    "overview": "This is an administrative UI for a Colombian public university's contractor payment tracking system. The visual language is deliberately restrained and institutional: dense information, clear hierarchy, no decorative noise. Every pixel earns its place by making a bureaucratic process feel manageable.\n\nThe system tracks six payment states (CD, PRS, AS, AP, RS, RO), each with a precise color assignment that carries operational weight for the contractor. Color decisions here are functional contracts, not aesthetic choices. Manrope brings geometric warmth to what would otherwise feel cold — its rounded apertures and clean weights soften institutional density without sacrificing seriousness.\n\nDepth is almost flat. Cards and table wrappers carry a minimal shadow-sm; the sticky navigation picks up the same treatment during scroll. Everything else is separated by structure — borders and tonal surface contrast — not by elevation.",
+    "keyCharacteristics": [
+      "Monochromatic white/gray canvas; color reserved for semantic state chips and primary action buttons",
+      "Dense horizontal data table (desktop) paired with stacked labeled cards (mobile)",
+      "Six-state semantic chip system with strict contrast compliance per WCAG AA",
+      "Manrope for warmth within institutional rigor",
+      "Gaia Crimson (#731514) on primary action buttons only — never decorative"
+    ],
+    "rules": [
+      { "name": "The Crimson Gate Rule",     "body": "Gaia Crimson (#731514) appears on exactly one layer per screen: primary action buttons and the active tab indicator. It is never used as a chip background, card border, heading color, or decorative stripe. State color and brand color live in parallel, not together.", "section": "colors" },
+      { "name": "The Contrast Contract Rule", "body": "Warm chip backgrounds (CD Amber, PRS Honey) always pair with text-gray-900. Dark chip backgrounds (Danger Scarlet, Approval Forest, Neutral Slate) always pair with white. Non-negotiable — the chips communicate payment states with legal significance.", "section": "colors" },
+      { "name": "The One Typeface Rule",      "body": "Manrope handles every role from heading to caption. No secondary or display family is introduced. All hierarchy comes from weight (400/500/600/700) and size (11–20px).", "section": "typography" },
+      { "name": "The Flat-By-Default Rule",   "body": "shadow-sm appears on three element types only: card wrappers, the data table wrapper, and the sticky tab rail. It is not applied to buttons, chips, individual table rows, or any decorative element.", "section": "elevation" },
+      { "name": "The Shape Tier Rule",        "body": "Three radius values exist: 12px for containers, 6px for controls, full-pill for semantic labels and badges. No other radius is used.", "section": "shapes" }
+    ],
+    "dos": [
+      "Do use Gaia Crimson (#731514) exclusively on primary action buttons and the active tab bottom-border indicator.",
+      "Do pair Caution Amber (#FF9311) and Caution Honey (#FFB051) chip backgrounds with text-gray-900 to meet WCAG AA contrast.",
+      "Do sort rows so actionable states (CD, RS) appear first, non-actionable last (priority order: CD=1, RS=2, PRS=3, AS=4, AP=5, RO=6).",
+      "Do use rounded-xl (12px) for containers, rounded-md (6px) for buttons, rounded-full for chips and badges.",
+      "Do apply shadow-sm only to: mobile card wrappers, the desktop table wrapper, and the sticky tab rail.",
+      "Do apply tabular-nums (font-variant-numeric: tabular-nums) to contract numbers and year values.",
+      "Do show a skeleton loader (not a spinner) during async data fetch to maintain layout stability."
+    ],
+    "donts": [
+      "Don't use Gaia Crimson (#731514) as a chip background, card stripe, section border, or heading color.",
+      "Don't introduce Angular Material or Bootstrap components. All UI is plain HTML + Tailwind.",
+      "Don't use the URANO blue (#03678F) palette — that belongs to SGA-subsystem micro-frontends.",
+      "Don't add shadows beyond shadow-sm or introduce backdrop-filter blur effects.",
+      "Don't implement the outer shell (header, lateral menu, footer) — Core MF owns those.",
+      "Don't use gradient fills, colored left-border card decorations, or glass-morphism effects.",
+      "Don't place the active-filter state label inside the primary action button text."
+    ]
+  }
+}

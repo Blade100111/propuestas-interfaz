@@ -1,23 +1,25 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, signal } from '@angular/core';
 import {
   DataTableComponent,
   TableColumn,
   TableCardDirective,
   TableRowDirective,
-} from '../../shared/components/data-table.component';
-import { EmptyStateComponent } from '../../shared/components/empty-state.component';
-import { SearchInputComponent } from '../../shared/components/search-input.component';
+} from '../shared/components/data-table.component';
+import { EmptyStateComponent } from '../shared/components/empty-state.component';
+import { SearchInputComponent } from '../shared/components/search-input.component';
+import {
+  MultiSelectDropdownComponent,
+  MultiSelectOption,
+} from '../shared/components/multi-select-dropdown.component';
 import {
   SoportesPanelComponent,
   PanelCumplidoData,
   SoporteDocRevisable,
-} from '../../shared/components/soportes-panel.component';
-import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog.component';
-import { ConfirmDialogService } from '../../shared/services/confirm-dialog.service';
-import { MAIN_WIDE, HDR_WIDE } from '../../shared/layout';
-import { OUTLINE_NEUTRAL_BTN, OUTLINE_DANGER_BTN } from '../../shared/action-btn';
+} from '../shared/components/soportes-panel.component';
+import { MAIN_WIDE, HDR_WIDE } from '../shared/layout';
+import { OUTLINE_NEUTRAL_BTN } from '../shared/action-btn';
 
-interface CumplidoReversionItem {
+interface CumplidoAprobadoItem {
   pagoMensualId: number;
   dependencia: string;
   rubro: string;
@@ -29,41 +31,61 @@ interface CumplidoReversionItem {
   mes: number;
   mesNombre: string;
   ano: number;
-  fechaAprobacion: string;
-  estado: string;
   soportes: SoporteDocRevisable[];
 }
 
-type SortCol = 'dependencia' | 'contrato' | 'vigencia' | 'mes' | 'ano' | 'fechaAprobacion';
+type SortCol = 'dependencia' | 'contrato' | 'vigencia' | 'ano' | 'mes';
 
-const SOPORTES_BASE: SoporteDocRevisable[] = [
-  {
-    id: 1,
-    nombre: 'informe-gestion.pdf',
-    descripcion: 'Informe de gestion del periodo correspondiente',
-    observacion: '',
-  },
-  {
-    id: 2,
-    nombre: 'soporte-actividades.pdf',
-    descripcion: 'Evidencias de actividades realizadas segun objeto contractual',
-    observacion: '',
-  },
+// ── Static filter options ──────────────────────────────────────────────────
+
+const VIGENCIAS_OPTIONS: MultiSelectOption[] = [
+  { value: '2024', label: '2024' },
+  { value: '2025', label: '2025' },
 ];
 
-const SOPORTES_3: SoporteDocRevisable[] = [
-  ...SOPORTES_BASE,
-  {
-    id: 3,
-    nombre: 'certificado-pago.pdf',
-    descripcion: 'Certificado de no mora con entidades de seguridad social',
-    observacion: '',
-  },
+const ANIOS_OPTIONS: MultiSelectOption[] = [
+  { value: '2024', label: '2024' },
+  { value: '2025', label: '2025' },
+  { value: '2026', label: '2026' },
 ];
 
-const MOCK_CUMPLIDOS: CumplidoReversionItem[] = [
+const MESES_OPTIONS: MultiSelectOption[] = [
+  { value: '1',  label: 'Enero' },
+  { value: '2',  label: 'Febrero' },
+  { value: '3',  label: 'Marzo' },
+  { value: '4',  label: 'Abril' },
+  { value: '5',  label: 'Mayo' },
+  { value: '6',  label: 'Junio' },
+  { value: '7',  label: 'Julio' },
+  { value: '8',  label: 'Agosto' },
+  { value: '9',  label: 'Septiembre' },
+  { value: '10', label: 'Octubre' },
+  { value: '11', label: 'Noviembre' },
+  { value: '12', label: 'Diciembre' },
+];
+
+// ── Mock soportes ──────────────────────────────────────────────────────────
+
+const S2: SoporteDocRevisable[] = [
+  { id: 1, nombre: 'informe-gestion.pdf',            descripcion: 'INFORME DE GESTIÓN',             observacion: '' },
+  { id: 2, nombre: 'certificado-cumplimiento.pdf',   descripcion: 'CERTIFICACIÓN DE CUMPLIMIENTO',  observacion: '' },
+];
+
+const S3: SoporteDocRevisable[] = [
+  ...S2,
+  { id: 3, nombre: 'planilla-salud-pension.pdf',     descripcion: 'SALUD Y PENSIÓN',                observacion: '' },
+];
+
+const S2B: SoporteDocRevisable[] = [
+  { id: 1, nombre: 'informe-gestion.pdf',            descripcion: 'INFORME DE GESTIÓN',             observacion: '' },
+  { id: 2, nombre: 'planilla-salud-pension.pdf',     descripcion: 'SALUD Y PENSIÓN',                observacion: '' },
+];
+
+// ── Mock data ──────────────────────────────────────────────────────────────
+
+const MOCK_CUMPLIDOS: CumplidoAprobadoItem[] = [
   {
-    pagoMensualId: 4001,
+    pagoMensualId: 6001,
     dependencia: 'OF. ASESORA DE TECNOLOGIAS E INFORMACION',
     rubro: 'INVERSION',
     documento: '52.345.678',
@@ -71,15 +93,13 @@ const MOCK_CUMPLIDOS: CumplidoReversionItem[] = [
     numeroContrato: '789-2025',
     vigencia: 2025,
     esOtroSi: false,
-    mes: 6,
-    mesNombre: 'Junio',
+    mes: 7,
+    mesNombre: 'Julio',
     ano: 2025,
-    fechaAprobacion: '2025-09-01',
-    estado: 'AP',
-    soportes: SOPORTES_3,
+    soportes: S3,
   },
   {
-    pagoMensualId: 4002,
+    pagoMensualId: 6002,
     dependencia: 'OF. ASESORA DE TECNOLOGIAS E INFORMACION',
     rubro: 'FUNCIONAMIENTO',
     documento: '41.876.543',
@@ -90,12 +110,10 @@ const MOCK_CUMPLIDOS: CumplidoReversionItem[] = [
     mes: 6,
     mesNombre: 'Junio',
     ano: 2025,
-    fechaAprobacion: '2025-09-01',
-    estado: 'AP',
-    soportes: SOPORTES_BASE,
+    soportes: S2,
   },
   {
-    pagoMensualId: 4003,
+    pagoMensualId: 6003,
     dependencia: 'FACULTAD DE INGENIERIA',
     rubro: 'INVERSION',
     documento: '80.234.567',
@@ -103,15 +121,13 @@ const MOCK_CUMPLIDOS: CumplidoReversionItem[] = [
     numeroContrato: '512-2025',
     vigencia: 2025,
     esOtroSi: false,
-    mes: 5,
-    mesNombre: 'Mayo',
+    mes: 6,
+    mesNombre: 'Junio',
     ano: 2025,
-    fechaAprobacion: '2025-08-28',
-    estado: 'AP',
-    soportes: SOPORTES_BASE,
+    soportes: S3,
   },
   {
-    pagoMensualId: 4004,
+    pagoMensualId: 6004,
     dependencia: 'FACULTAD DE INGENIERIA',
     rubro: 'FUNCIONAMIENTO',
     documento: '39.456.789',
@@ -122,12 +138,10 @@ const MOCK_CUMPLIDOS: CumplidoReversionItem[] = [
     mes: 6,
     mesNombre: 'Junio',
     ano: 2025,
-    fechaAprobacion: '2025-09-02',
-    estado: 'AP',
-    soportes: SOPORTES_3,
+    soportes: S2,
   },
   {
-    pagoMensualId: 4005,
+    pagoMensualId: 6005,
     dependencia: 'DIV. RECURSOS HUMANOS',
     rubro: 'FUNCIONAMIENTO',
     documento: '51.789.012',
@@ -135,15 +149,13 @@ const MOCK_CUMPLIDOS: CumplidoReversionItem[] = [
     numeroContrato: '310-2025',
     vigencia: 2025,
     esOtroSi: false,
-    mes: 6,
-    mesNombre: 'Junio',
+    mes: 5,
+    mesNombre: 'Mayo',
     ano: 2025,
-    fechaAprobacion: '2025-09-03',
-    estado: 'AP',
-    soportes: SOPORTES_3,
+    soportes: S3,
   },
   {
-    pagoMensualId: 4006,
+    pagoMensualId: 6006,
     dependencia: 'DIV. RECURSOS HUMANOS',
     rubro: 'FUNCIONAMIENTO',
     documento: '79.345.123',
@@ -154,12 +166,10 @@ const MOCK_CUMPLIDOS: CumplidoReversionItem[] = [
     mes: 5,
     mesNombre: 'Mayo',
     ano: 2025,
-    fechaAprobacion: '2025-08-25',
-    estado: 'AP',
-    soportes: SOPORTES_BASE,
+    soportes: S2B,
   },
   {
-    pagoMensualId: 4007,
+    pagoMensualId: 6007,
     dependencia: 'DIV. FINANCIERA',
     rubro: 'INVERSION',
     documento: '23.567.890',
@@ -167,17 +177,85 @@ const MOCK_CUMPLIDOS: CumplidoReversionItem[] = [
     numeroContrato: '855-2025',
     vigencia: 2025,
     esOtroSi: false,
+    mes: 7,
+    mesNombre: 'Julio',
+    ano: 2025,
+    soportes: S3,
+  },
+  {
+    pagoMensualId: 6008,
+    dependencia: 'OF. ASESORA DE TECNOLOGIAS E INFORMACION',
+    rubro: 'INVERSION',
+    documento: '52.345.678',
+    nombreContratista: 'Carlos Andres Martinez Lopez',
+    numeroContrato: '789-2025',
+    vigencia: 2025,
+    esOtroSi: false,
     mes: 6,
     mesNombre: 'Junio',
     ano: 2025,
-    fechaAprobacion: '2025-09-03',
-    estado: 'AP',
-    soportes: SOPORTES_3,
+    soportes: S2,
+  },
+  {
+    pagoMensualId: 6009,
+    dependencia: 'FACULTAD DE INGENIERIA',
+    rubro: 'INVERSION',
+    documento: '80.234.567',
+    nombreContratista: 'Juan David Herrera Ruiz',
+    numeroContrato: '512-2025',
+    vigencia: 2025,
+    esOtroSi: false,
+    mes: 5,
+    mesNombre: 'Mayo',
+    ano: 2025,
+    soportes: S3,
+  },
+  {
+    pagoMensualId: 6010,
+    dependencia: 'DIV. RECURSOS HUMANOS',
+    rubro: 'FUNCIONAMIENTO',
+    documento: '51.789.012',
+    nombreContratista: 'Diana Carolina Vargas Mendez',
+    numeroContrato: '310-2025',
+    vigencia: 2025,
+    esOtroSi: false,
+    mes: 6,
+    mesNombre: 'Junio',
+    ano: 2025,
+    soportes: S2,
+  },
+  {
+    pagoMensualId: 6011,
+    dependencia: 'OF. ASESORA DE TECNOLOGIAS E INFORMACION',
+    rubro: 'FUNCIONAMIENTO',
+    documento: '67.123.456',
+    nombreContratista: 'Ana Lucia Rodriguez Perez',
+    numeroContrato: '333-2025',
+    vigencia: 2025,
+    esOtroSi: false,
+    mes: 7,
+    mesNombre: 'Julio',
+    ano: 2025,
+    soportes: S2B,
+  },
+  {
+    pagoMensualId: 6012,
+    dependencia: 'DIV. FINANCIERA',
+    rubro: 'INVERSION',
+    documento: '23.567.890',
+    nombreContratista: 'Roberto Camilo Medina Suarez',
+    numeroContrato: '855-2024',
+    vigencia: 2024,
+    esOtroSi: false,
+    mes: 12,
+    mesNombre: 'Diciembre',
+    ano: 2024,
+    soportes: S3,
   },
 ];
 
 @Component({
-  selector: 'app-reversion-ordenador',
+  selector: 'app-cumplidos-aprobados',
   standalone: true,
   imports: [
     DataTableComponent,
@@ -185,31 +263,44 @@ const MOCK_CUMPLIDOS: CumplidoReversionItem[] = [
     TableCardDirective,
     EmptyStateComponent,
     SearchInputComponent,
+    MultiSelectDropdownComponent,
     SoportesPanelComponent,
-    ConfirmDialogComponent,
   ],
-  templateUrl: './reversion-ordenador.component.html',
+  templateUrl: './cumplidos-aprobados.component.html',
 })
-export class ReversionOrdenadorComponent {
+export class CumplidosAprobadosComponent {
   // ── Layout ─────────────────────────────────────────────────────────────────
   readonly mainCls = MAIN_WIDE;
   readonly hdrCls = HDR_WIDE;
 
-  // ── Services ───────────────────────────────────────────────────────────────
-  private readonly confirmSvc = inject(ConfirmDialogService);
-
-  // ── Panel config (read-only: no action buttons, no observation textareas) ──
-  readonly panelActionableEstados: string[] = [];
-
   // ── State ──────────────────────────────────────────────────────────────────
   readonly cargando = signal(true);
-  readonly cumplidos = signal<CumplidoReversionItem[]>(MOCK_CUMPLIDOS);
+  readonly cumplidos = signal<CumplidoAprobadoItem[]>(MOCK_CUMPLIDOS);
   readonly busqueda = signal('');
+  readonly filtroVigencias = signal<string[]>([]);
+  readonly filtroAnios = signal<string[]>([]);
+  readonly filtroMeses = signal<string[]>([]);
   readonly sortColumn = signal<SortCol | null>(null);
   readonly sortDirection = signal<'asc' | 'desc'>('asc');
-  readonly selectedItem = signal<CumplidoReversionItem | null>(null);
+  readonly selectedItem = signal<CumplidoAprobadoItem | null>(null);
+
+  // ── Panel config ───────────────────────────────────────────────────────────
+  readonly panelActionableEstados: string[] = [];
+
+  // ── Static filter options ──────────────────────────────────────────────────
+  readonly vigenciasOptions = VIGENCIAS_OPTIONS;
+  readonly aniosOptions = ANIOS_OPTIONS;
+  readonly mesesOptions = MESES_OPTIONS;
 
   // ── Computed ───────────────────────────────────────────────────────────────
+  readonly hayFiltrosActivos = computed(
+    () =>
+      this.busqueda() !== '' ||
+      this.filtroVigencias().length > 0 ||
+      this.filtroAnios().length > 0 ||
+      this.filtroMeses().length > 0,
+  );
+
   readonly cumplidosFiltrados = computed(() => {
     const q = this.busqueda().toLowerCase().trim();
     let list = this.cumplidos();
@@ -223,6 +314,15 @@ export class ReversionOrdenadorComponent {
           c.dependencia.toLowerCase().includes(q),
       );
     }
+    if (this.filtroVigencias().length > 0) {
+      list = list.filter((c) => this.filtroVigencias().includes(String(c.vigencia)));
+    }
+    if (this.filtroAnios().length > 0) {
+      list = list.filter((c) => this.filtroAnios().includes(String(c.ano)));
+    }
+    if (this.filtroMeses().length > 0) {
+      list = list.filter((c) => this.filtroMeses().includes(String(c.mes)));
+    }
 
     const col = this.sortColumn();
     const dir = this.sortDirection() === 'asc' ? 1 : -1;
@@ -233,12 +333,10 @@ export class ReversionOrdenadorComponent {
       list = [...list].sort((a, b) => a.numeroContrato.localeCompare(b.numeroContrato) * dir);
     } else if (col === 'vigencia') {
       list = [...list].sort((a, b) => (a.vigencia - b.vigencia) * dir);
-    } else if (col === 'mes') {
-      list = [...list].sort((a, b) => (a.mes - b.mes) * dir);
     } else if (col === 'ano') {
       list = [...list].sort((a, b) => (a.ano - b.ano) * dir);
-    } else if (col === 'fechaAprobacion') {
-      list = [...list].sort((a, b) => a.fechaAprobacion.localeCompare(b.fechaAprobacion) * dir);
+    } else if (col === 'mes') {
+      list = [...list].sort((a, b) => (a.mes - b.mes) * dir);
     }
 
     return list;
@@ -246,8 +344,9 @@ export class ReversionOrdenadorComponent {
 
   readonly footerText = computed(() => {
     const n = this.cumplidosFiltrados().length;
-    const suffix = this.busqueda() ? ' encontrado(s)' : '';
-    return `${n} cumplido${n !== 1 ? 's' : ''}${suffix}`;
+    const total = this.cumplidos().length;
+    if (n === total) return `${n} cumplido${n !== 1 ? 's' : ''} aprobado${n !== 1 ? 's' : ''}`;
+    return `${n} de ${total} cumplidos aprobados`;
   });
 
   readonly panelData = computed((): PanelCumplidoData | null => {
@@ -260,7 +359,7 @@ export class ReversionOrdenadorComponent {
       numeroContrato: item.numeroContrato,
       mes: item.mesNombre,
       ano: item.ano,
-      estado: item.estado,
+      estado: 'AP',
       soportes: item.soportes,
     };
   });
@@ -316,22 +415,6 @@ export class ReversionOrdenadorComponent {
       skCell: 'hidden h-4 w-14 animate-pulse rounded bg-gray-100 lg:block',
     },
     {
-      key: 'mes',
-      header: 'Mes',
-      sortable: true,
-      thClass: 'px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500',
-      skHdr: 'h-2.5 w-10 animate-pulse rounded bg-gray-200',
-      skCell: 'h-4 w-12 animate-pulse rounded bg-gray-100',
-    },
-    {
-      key: 'fechaAprobacion',
-      header: 'Fecha aprobacion',
-      sortable: true,
-      thClass: 'hidden px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 lg:table-cell',
-      skHdr: 'hidden h-2.5 w-24 animate-pulse rounded bg-gray-200 lg:block',
-      skCell: 'hidden h-4 w-24 animate-pulse rounded bg-gray-100 lg:block',
-    },
-    {
       key: 'ano',
       header: 'A\u00f1o',
       sortable: true,
@@ -340,18 +423,31 @@ export class ReversionOrdenadorComponent {
       skCell: 'h-4 w-12 animate-pulse rounded bg-gray-100',
     },
     {
+      key: 'mes',
+      header: 'Mes',
+      sortable: true,
+      thClass: 'px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500',
+      skHdr: 'h-2.5 w-10 animate-pulse rounded bg-gray-200',
+      skCell: 'h-4 w-12 animate-pulse rounded bg-gray-100',
+    },
+    {
       key: 'accion',
-      header: 'Acciones',
+      header: '',
       sortable: false,
-      thClass: 'py-3.5 pl-3 pr-5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500',
-      skHdr: 'h-2.5 w-28 animate-pulse rounded bg-gray-200',
-      skCell: 'h-8 w-40 animate-pulse rounded-md bg-gray-100',
+      thClass: 'py-3.5 pl-3 pr-5',
+      skHdr: 'h-2.5 w-8 animate-pulse rounded bg-gray-200',
+      skCell: 'h-7 w-24 animate-pulse rounded-md bg-gray-100 mx-auto',
     },
   ];
 
   // ── Literal class strings ──────────────────────────────────────────────────
-  readonly soportesBtnCls = OUTLINE_NEUTRAL_BTN;
-  readonly revertirBtnCls = OUTLINE_DANGER_BTN;
+  readonly labelCls =
+    'mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-400';
+
+  readonly limpiarBtnCls =
+    'inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-500 transition-colors duration-150 hover:border-gray-300 hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#731514]';
+
+  readonly verBtnCls = OUTLINE_NEUTRAL_BTN;
 
   readonly rubroInversionCls =
     'inline-flex items-center rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700';
@@ -380,7 +476,7 @@ export class ReversionOrdenadorComponent {
   }
 
   // ── Panel ──────────────────────────────────────────────────────────────────
-  abrirPanel(item: CumplidoReversionItem): void {
+  abrirPanel(item: CumplidoAprobadoItem): void {
     this.selectedItem.set(item);
   }
 
@@ -388,23 +484,12 @@ export class ReversionOrdenadorComponent {
     this.selectedItem.set(null);
   }
 
-  // ── Reversion ──────────────────────────────────────────────────────────────
-  async handleRevertir(item: CumplidoReversionItem): Promise<void> {
-    const result = await this.confirmSvc.confirm({
-      title: 'Revertir aprobacion',
-      message: `\u00bfEsta seguro de revertir el cumplido de ${item.nombreContratista} (${item.mesNombre} ${item.ano})? El estado volvera a Rechazado por ordenador y el contratista debera corregir y reenviar.`,
-      confirmLabel: 'Revertir',
-      cancelLabel: 'Cancelar',
-      variant: 'danger',
-    });
-    if (!result.confirmed) return;
-    // Item leaves the revertible list (matches real endpoint behavior)
-    this.cumplidos.update((list) =>
-      list.filter((c) => c.pagoMensualId !== item.pagoMensualId),
-    );
-    if (this.selectedItem()?.pagoMensualId === item.pagoMensualId) {
-      this.selectedItem.set(null);
-    }
+  // ── Filters ────────────────────────────────────────────────────────────────
+  limpiarFiltros(): void {
+    this.busqueda.set('');
+    this.filtroVigencias.set([]);
+    this.filtroAnios.set([]);
+    this.filtroMeses.set([]);
   }
 
   constructor() {

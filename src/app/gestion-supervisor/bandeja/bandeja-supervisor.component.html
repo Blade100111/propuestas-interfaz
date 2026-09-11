@@ -29,14 +29,13 @@
                  class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-400">
             Dependencia
           </label>
-          <select id="cert-dep" [class]="selectCls"
-                  [value]="certDependencia()"
-                  (change)="certDependencia.set($any($event.target).value)">
-            <option value="">-- Seleccionar --</option>
-            @for (dep of certDependencias; track dep) {
-              <option [value]="dep">{{ dep }}</option>
-            }
-          </select>
+          <app-single-select
+            id="cert-dep"
+            [options]="certDependenciasOptions"
+            [value]="certDependencia()"
+            placeholder="-- Seleccionar --"
+            (valueChange)="certDependencia.set($event)"
+          />
         </div>
 
         <!-- Mes -->
@@ -45,14 +44,13 @@
                  class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-400">
             Mes del certificado
           </label>
-          <select id="cert-mes" [class]="selectCls"
-                  [value]="certMes()"
-                  (change)="certMes.set($any($event.target).value)">
-            <option value="">-- Seleccionar --</option>
-            @for (m of certMeses; track m.value) {
-              <option [value]="m.value">{{ m.label }}</option>
-            }
-          </select>
+          <app-single-select
+            id="cert-mes"
+            [options]="certMesesOptions"
+            [value]="certMes()"
+            placeholder="-- Seleccionar --"
+            (valueChange)="certMes.set($event)"
+          />
         </div>
 
         <!-- Año -->
@@ -61,14 +59,13 @@
                  class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-400">
             Ano del certificado
           </label>
-          <select id="cert-anio" [class]="selectCls"
-                  [value]="certAnio()"
-                  (change)="certAnio.set($any($event.target).value)">
-            <option value="">-- Seleccionar --</option>
-            @for (a of certAnios; track a) {
-              <option [value]="a">{{ a }}</option>
-            }
-          </select>
+          <app-single-select
+            id="cert-anio"
+            [options]="certAniosOptions"
+            [value]="certAnio()"
+            placeholder="-- Seleccionar --"
+            (valueChange)="certAnio.set($event)"
+          />
         </div>
 
         <!-- Fecha de aprobacion -->
@@ -226,12 +223,13 @@
               type="button"
               [attr.aria-label]="accionBtnLabel(cumplido.estado) + ' — ' + cumplido.nombreContratista"
             >
-              {{ accionBtnLabel(cumplido.estado) }}
-              <svg width="13" height="13" viewBox="0 0 16 16" fill="none"
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none"
                    stroke="currentColor" stroke-width="2"
                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M6 4l4 4-4 4"/>
+                <circle cx="8" cy="8" r="3"/>
+                <path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/>
               </svg>
+              {{ accionBtnLabel(cumplido.estado) }}
             </button>
           </td>
 

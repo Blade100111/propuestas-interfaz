@@ -9,6 +9,10 @@ import { EstadoChipComponent } from '../../shared/components/estado-chip.compone
 import { EmptyStateComponent } from '../../shared/components/empty-state.component';
 import { SearchInputComponent } from '../../shared/components/search-input.component';
 import {
+  SingleSelectDropdownComponent,
+  SingleSelectOption,
+} from '../../shared/components/single-select-dropdown.component';
+import {
   SoportesPanelComponent,
   PanelCumplidoData,
   SoporteDocRevisable,
@@ -115,22 +119,6 @@ const MOCK_CUMPLIDOS: CumplidoBandejaItem[] = [
     soportes: SOPORTES_BASE,
   },
   {
-    pagoMensualId: 2003,
-    dependencia: 'OF. ASESORA DE TECNOLOGIAS E INFORMACION',
-    documento: '52.345.678',
-    nombreContratista: 'Carlos Andres Martinez Lopez',
-    numeroContrato: '789-2025',
-    vigencia: 2025,
-    cdp: 4256,
-    tipoContrato: 'INICIAL',
-    esOtroSi: false,
-    mes: 6,
-    mesNombre: 'Junio',
-    ano: 2025,
-    estado: 'AS',
-    soportes: SOPORTES_3,
-  },
-  {
     pagoMensualId: 2004,
     dependencia: 'FACULTAD DE INGENIERIA',
     documento: '80.234.567',
@@ -227,22 +215,6 @@ const MOCK_CUMPLIDOS: CumplidoBandejaItem[] = [
     soportes: SOPORTES_BASE,
   },
   {
-    pagoMensualId: 2010,
-    dependencia: 'FACULTAD DE INGENIERIA',
-    documento: '39.456.789',
-    nombreContratista: 'Andrea Milena Parra Torres',
-    numeroContrato: '401-2025',
-    vigencia: 2025,
-    cdp: 3128,
-    tipoContrato: 'INICIAL',
-    esOtroSi: false,
-    mes: 6,
-    mesNombre: 'Junio',
-    ano: 2025,
-    estado: 'AS',
-    soportes: SOPORTES_3,
-  },
-  {
     pagoMensualId: 2011,
     dependencia: 'DIV. RECURSOS HUMANOS',
     documento: '51.789.012',
@@ -288,6 +260,7 @@ const MOCK_CUMPLIDOS: CumplidoBandejaItem[] = [
     SearchInputComponent,
     SoportesPanelComponent,
     ConfirmDialogComponent,
+    SingleSelectDropdownComponent,
   ],
   templateUrl: './bandeja-supervisor.component.html',
 })
@@ -461,6 +434,9 @@ export class BandejaSupervisorComponent {
   readonly certDependencias = DEPENDENCIAS_CERT;
   readonly certMeses = MESES_CERT;
   readonly certAnios = ANIOS_CERT;
+  readonly certDependenciasOptions: SingleSelectOption[] = DEPENDENCIAS_CERT.map((d) => ({ value: d, label: d }));
+  readonly certMesesOptions: SingleSelectOption[] = MESES_CERT;
+  readonly certAniosOptions: SingleSelectOption[] = ANIOS_CERT.map((a) => ({ value: String(a), label: String(a) }));
 
   // ── Cert filter state ──────────────────────────────────────────────────────
   readonly certDependencia = signal('');
@@ -473,10 +449,10 @@ export class BandejaSupervisorComponent {
     'block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm transition-colors duration-150 focus:border-[#731514] focus:outline-none focus:ring-2 focus:ring-[#731514]/30';
 
   readonly primaryBtnCls =
-    'inline-flex items-center justify-center gap-1.5 min-w-[9rem] rounded-md bg-[#731514] px-3 py-1.5 text-sm font-semibold text-white shadow-sm transition-colors duration-150 hover:bg-[#5e1212] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#731514]';
+    'inline-flex items-center justify-center gap-1.5 min-w-[8rem] rounded-md border border-[#731514] bg-white px-2.5 py-1.5 text-xs font-semibold text-[#731514] transition-colors duration-150 hover:bg-[#731514]/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#731514]';
 
   readonly ghostBtnCls =
-    'inline-flex items-center justify-center gap-1.5 min-w-[9rem] rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-600 transition-colors duration-150 hover:border-gray-300 hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#731514]';
+    'inline-flex items-center justify-center gap-1.5 min-w-[8rem] rounded-md border border-gray-900 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-900 transition-colors duration-150 hover:bg-gray-900/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#731514]';
 
   readonly certBtnCls =
     'inline-flex items-center gap-2 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-600 transition-colors duration-150 hover:border-gray-300 hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#731514]';

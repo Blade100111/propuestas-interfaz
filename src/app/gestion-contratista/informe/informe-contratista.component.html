@@ -187,17 +187,13 @@
       <div class="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,12rem)_minmax(0,12rem)] gap-4 mb-6">
         <div>
           <label for="select-proceso" [class]="labelCls">Proceso institucional</label>
-          <select
+          <app-single-select
             id="select-proceso"
-            [class]="selectCls"
+            [options]="procesosOptions"
             [value]="proceso()"
-            (change)="proceso.set($any($event.target).value)"
-          >
-            <option value="">Seleccionar proceso...</option>
-            @for (p of procesos; track p) {
-              <option [value]="p" [selected]="proceso() === p">{{ p }}</option>
-            }
-          </select>
+            placeholder="Seleccionar proceso..."
+            (valueChange)="proceso.set($event)"
+          />
         </div>
         <div>
           <label for="fecha-inicio" [class]="labelCls">Período inicio</label>

@@ -9,6 +9,10 @@ import { EstadoChipComponent } from '../../shared/components/estado-chip.compone
 import { EmptyStateComponent } from '../../shared/components/empty-state.component';
 import { SearchInputComponent } from '../../shared/components/search-input.component';
 import {
+  SingleSelectDropdownComponent,
+  SingleSelectOption,
+} from '../../shared/components/single-select-dropdown.component';
+import {
   SoportesPanelComponent,
   PanelCumplidoData,
   SoporteDocRevisable,
@@ -228,6 +232,7 @@ const DEPENDENCIAS = [...new Set(MOCK_CUMPLIDOS.map((c) => c.dependencia))].sort
     SearchInputComponent,
     SoportesPanelComponent,
     ConfirmDialogComponent,
+    SingleSelectDropdownComponent,
   ],
   templateUrl: './bandeja-ordenador.component.html',
 })
@@ -251,6 +256,10 @@ export class BandejaOrdenadorComponent {
 
   // ── Static filter data ─────────────────────────────────────────────────────
   readonly dependencias = DEPENDENCIAS;
+  readonly dependenciasOptions: SingleSelectOption[] = [
+    { value: '', label: 'Todas las dependencias' },
+    ...DEPENDENCIAS.map((d) => ({ value: d, label: d })),
+  ];
 
   // ── Panel actionable estados ───────────────────────────────────────────────
   readonly panelActionableEstados = ['AS'];
@@ -431,10 +440,10 @@ export class BandejaOrdenadorComponent {
     'block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm transition-colors duration-150 focus:border-[#731514] focus:outline-none focus:ring-2 focus:ring-[#731514]/30';
 
   readonly primaryBtnCls =
-    'inline-flex items-center justify-center gap-1.5 min-w-[9rem] rounded-md bg-[#731514] px-3 py-1.5 text-sm font-semibold text-white shadow-sm transition-colors duration-150 hover:bg-[#5e1212] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#731514]';
+    'inline-flex items-center justify-center gap-1.5 min-w-[8rem] rounded-md border border-[#731514] bg-white px-2.5 py-1.5 text-xs font-semibold text-[#731514] transition-colors duration-150 hover:bg-[#731514]/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#731514]';
 
   readonly ghostBtnCls =
-    'inline-flex items-center justify-center gap-1.5 min-w-[9rem] rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-600 transition-colors duration-150 hover:border-gray-300 hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#731514]';
+    'inline-flex items-center justify-center gap-1.5 min-w-[8rem] rounded-md border border-gray-900 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-900 transition-colors duration-150 hover:bg-gray-900/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#731514]';
 
   readonly aprobarSelBtnCls =
     'inline-flex items-center justify-center gap-1.5 rounded-md bg-[#731514] px-3 py-1.5 text-sm font-semibold text-white shadow-sm transition-colors duration-150 hover:bg-[#5e1212] disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#731514]';

@@ -204,12 +204,13 @@
                  for="sel-item-soporte">
             Tipo de documento
           </label>
-          <select id="sel-item-soporte" [class]="selectCls" (change)="setItem($event)">
-            <option value="">— seleccionar ítem —</option>
-            @for (item of itemsDisponibles(); track item.id) {
-              <option [value]="item.id">{{ item.label }}</option>
-            }
-          </select>
+          <app-single-select
+            id="sel-item-soporte"
+            [options]="itemsOptions"
+            [value]="itemSeleccionado()"
+            placeholder="— seleccionar ítem —"
+            (valueChange)="setItem($event)"
+          />
         </div>
 
         @if (itemSeleccionado()) {

@@ -1,6 +1,10 @@
 import { Component, ElementRef, ViewChild, computed, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { EstadoChipComponent } from '../../shared/components/estado-chip.component';
+import {
+  SingleSelectDropdownComponent,
+  SingleSelectOption,
+} from '../../shared/components/single-select-dropdown.component';
 import { MAIN_NARROW, HDR_NARROW } from '../../shared/layout';
 
 export interface SoporteDoc {
@@ -147,7 +151,7 @@ const MAX_FILE_MB = 1; // confirmed: maxFileSize: 1000 KB / fileModel.size <= 10
 @Component({
   selector: 'app-detalle-soporte-contratista',
   standalone: true,
-  imports: [EstadoChipComponent],
+  imports: [EstadoChipComponent, SingleSelectDropdownComponent],
   templateUrl: './detalle-soporte-contratista.component.html',
 })
 export class DetalleSoporteContratistaComponent {
@@ -182,8 +186,10 @@ export class DetalleSoporteContratistaComponent {
     'relative flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 px-6 py-10 text-center cursor-pointer transition-colors duration-150 hover:bg-white hover:border-gray-400 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[#731514]';
   readonly dropZoneActiveCls =
     'relative flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-[#731514] bg-[#f3e8e8] px-6 py-10 text-center cursor-pointer transition-colors duration-150 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[#731514]';
-  readonly selectCls =
-    'block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm transition-colors duration-150 focus:border-[#731514] focus:outline-none focus:ring-2 focus:ring-[#731514]/30';
+  readonly itemsOptions: SingleSelectOption[] = ITEMS_SOPORTE.map((i) => ({
+    value: i.id,
+    label: i.label,
+  }));
 
   // ── ViewChild ─────────────────────────────────────────────────────────────
   // Present in DOM only when esEditable() && itemSeleccionado() && !esInforme()
@@ -295,8 +301,8 @@ export class DetalleSoporteContratistaComponent {
     this.archivosStaged.update((list) => list.filter((f) => f !== target));
   }
 
-  setItem(event: Event): void {
-    this.itemSeleccionado.set((event.target as HTMLSelectElement).value);
+  setItem(val: string): void {
+    this.itemSeleccionado.set(val);
     this.archivosStaged.set([]); // clear staged files when item type changes
   }
 

@@ -61,6 +61,20 @@ export const routes: Routes = [
       import('./historico/historico.component').then((m) => m.HistoricoComponent),
   },
   {
+    path: 'cumplidos-aprobados',
+    loadComponent: () =>
+      import('./cumplidos-aprobados/cumplidos-aprobados.component').then(
+        (m) => m.CumplidosAprobadosComponent,
+      ),
+  },
+  {
+    path: 'parametrizacion-fechas',
+    loadComponent: () =>
+      import('./parametrizacion-fechas/parametrizacion-fechas.component').then(
+        (m) => m.ParametrizacionFechasComponent,
+      ),
+  },
+  {
     path: '**',
     redirectTo: 'gestion-contratista/contratos',
   },
