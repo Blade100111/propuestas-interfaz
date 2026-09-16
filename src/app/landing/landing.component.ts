@@ -38,30 +38,14 @@ export class LandingComponent {
   readonly gridCardCls =
     'group flex flex-col rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-all hover:border-gray-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#731514]/30 focus-visible:ring-offset-2';
 
-  readonly horizCardClsLabeled =
-    'group flex w-full max-w-2xl items-center gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-all hover:border-gray-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#731514]/30 focus-visible:ring-offset-2';
-
-  readonly horizCardClsCentered =
-    'group flex w-full max-w-lg items-center gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-all hover:border-gray-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#731514]/30 focus-visible:ring-offset-2';
-
-  // Icono contenedor horizontal (sin mb) — accion=crimson, resto=blanco+borde
-  readonly iconoClsH: Record<TipoSeccion, string> = {
-    accion:
-      'flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-[#731514] text-white transition-colors group-hover:bg-[#5e1212]',
-    consulta:
-      'flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 transition-colors group-hover:bg-gray-50',
-    config:
-      'flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 transition-colors group-hover:bg-gray-50',
-  };
-
   // Icono contenedor grid (con mb-2)
   readonly iconoClsG: Record<TipoSeccion, string> = {
     accion:
       'mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-[#731514] text-white transition-colors group-hover:bg-[#5e1212]',
     consulta:
-      'mb-2 flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 transition-colors group-hover:bg-gray-50',
+      'mb-2 flex h-10 w-10 items-center justify-center rounded-lg border border-gray-900 bg-white text-gray-900 transition-colors group-hover:bg-gray-900/5',
     config:
-      'mb-2 flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 transition-colors group-hover:bg-gray-50',
+      'mb-2 flex h-10 w-10 items-center justify-center rounded-lg border border-gray-900 bg-white text-gray-900 transition-colors group-hover:bg-gray-900/5',
   };
 
   // Paths SVG Heroicons outline 24. Un único path por icono → [attr.d] en template.

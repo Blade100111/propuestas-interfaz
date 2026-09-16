@@ -34,43 +34,45 @@
           </h2>
         }
 
-        @if (seccion.tarjetas.length === 1) {
-          <!-- Tarjeta horizontal para secciones con un solo elemento -->
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           @for (card of seccion.tarjetas; track card.ruta) {
-            <div [class]="seccion.titulo ? 'block' : 'flex justify-center'">
-              <a
-                [routerLink]="card.ruta"
-                [class]="seccion.titulo ? horizCardClsLabeled : horizCardClsCentered"
-                [attr.aria-label]="card.titulo"
+            <a
+              [routerLink]="card.ruta"
+              [class]="gridCardCls"
+              [attr.aria-label]="card.titulo"
+            >
+              <div [class]="iconoClsG[seccion.tipo]">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke-width="1.5"
+                  stroke="currentColor"
+                  class="h-5 w-5"
+                  aria-hidden="true"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    [attr.d]="iconPaths[card.icono]"
+                  />
+                </svg>
+              </div>
+              <h3 class="text-sm font-semibold text-gray-900">{{ card.titulo }}</h3>
+              <p class="mt-1.5 flex-1 text-sm leading-relaxed text-gray-500">
+                {{ card.descripcion }}
+              </p>
+              <div
+                class="mt-3 flex items-center gap-1 text-xs font-medium text-gray-400 transition-colors group-hover:text-gray-600"
               >
-                <div [class]="iconoClsH[seccion.tipo]">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke-width="1.5"
-                    stroke="currentColor"
-                    class="h-5 w-5"
-                    aria-hidden="true"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      [attr.d]="iconPaths[card.icono]"
-                    />
-                  </svg>
-                </div>
-                <div class="min-w-0 flex-1">
-                  <h3 class="text-sm font-semibold text-gray-900">{{ card.titulo }}</h3>
-                  <p class="mt-0.5 text-sm text-gray-500">{{ card.descripcion }}</p>
-                </div>
+                <span>Abrir</span>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke-width="2"
                   stroke="currentColor"
-                  class="h-4 w-4 flex-shrink-0 text-gray-400 transition-colors group-hover:text-gray-600"
+                  class="h-3.5 w-3.5"
                   aria-hidden="true"
                 >
                   <path
@@ -79,63 +81,10 @@
                     d="m8.25 4.5 7.5 7.5-7.5 7.5"
                   />
                 </svg>
-              </a>
-            </div>
+              </div>
+            </a>
           }
-        } @else {
-          <!-- Grid para secciones con múltiples elementos -->
-          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            @for (card of seccion.tarjetas; track card.ruta) {
-              <a
-                [routerLink]="card.ruta"
-                [class]="gridCardCls"
-                [attr.aria-label]="card.titulo"
-              >
-                <div [class]="iconoClsG[seccion.tipo]">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke-width="1.5"
-                    stroke="currentColor"
-                    class="h-5 w-5"
-                    aria-hidden="true"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      [attr.d]="iconPaths[card.icono]"
-                    />
-                  </svg>
-                </div>
-                <h3 class="text-sm font-semibold text-gray-900">{{ card.titulo }}</h3>
-                <p class="mt-1.5 flex-1 text-sm leading-relaxed text-gray-500">
-                  {{ card.descripcion }}
-                </p>
-                <div
-                  class="mt-3 flex items-center gap-1 text-xs font-medium text-gray-400 transition-colors group-hover:text-gray-600"
-                >
-                  <span>Abrir</span>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke-width="2"
-                    stroke="currentColor"
-                    class="h-3.5 w-3.5"
-                    aria-hidden="true"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      d="m8.25 4.5 7.5 7.5-7.5 7.5"
-                    />
-                  </svg>
-                </div>
-              </a>
-            }
-          </div>
-        }
+        </div>
       </section>
     }
   </main>
