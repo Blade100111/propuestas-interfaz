@@ -72,7 +72,7 @@ export class SolicitudesContratistaComponent {
 
   // ── Literal class strings — TW scanner requires these to be literals ──────
   readonly backBtnCls =
-    'inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#731514] rounded';
+    'inline-flex items-center gap-1.5 text-sm font-medium text-white/80 hover:text-white transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white rounded';
 
   readonly primaryBtnCls =
     'inline-flex items-center justify-center gap-1.5 rounded-md bg-[#731514] px-3 py-2 text-sm font-semibold text-white shadow-sm transition-colors duration-150 hover:bg-[#5e1212] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#731514]';

@@ -3,8 +3,8 @@ import { Routes } from '@angular/router';
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: 'gestion-contratista/contratos',
-    pathMatch: 'full',
+    loadComponent: () =>
+      import('./landing/landing.component').then((m) => m.LandingComponent),
   },
   {
     path: 'gestion-contratista/contratos',

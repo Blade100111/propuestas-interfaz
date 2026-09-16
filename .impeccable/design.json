@@ -118,17 +118,17 @@
       "Dense horizontal data table (desktop) paired with stacked labeled cards (mobile)",
       "Six-state semantic chip system with strict contrast compliance per WCAG AA",
       "Manrope for warmth within institutional rigor",
-      "Gaia Crimson (#731514) on primary action buttons only — never decorative"
+      "Gaia Crimson (#731514) on page header backgrounds, primary action buttons, and active tab indicator — never decorative or on semantic chips"
     ],
     "rules": [
-      { "name": "The Crimson Gate Rule",     "body": "Gaia Crimson (#731514) appears on exactly one layer per screen: primary action buttons and the active tab indicator. It is never used as a chip background, card border, heading color, or decorative stripe. State color and brand color live in parallel, not together.", "section": "colors" },
+      { "name": "The Crimson Gate Rule",     "body": "Gaia Crimson (#731514) is used on three structural elements: page header backgrounds (bg-[#731514]), primary action buttons, and the active tab indicator. All header text and back-button controls use white/white-opacity variants for contrast. It is never used as a chip background, card border, or decorative stripe. State color and brand color live in parallel, not together.", "section": "colors" },
       { "name": "The Contrast Contract Rule", "body": "Warm chip backgrounds (CD Amber, PRS Honey) always pair with text-gray-900. Dark chip backgrounds (Danger Scarlet, Approval Forest, Neutral Slate) always pair with white. Non-negotiable — the chips communicate payment states with legal significance.", "section": "colors" },
       { "name": "The One Typeface Rule",      "body": "Manrope handles every role from heading to caption. No secondary or display family is introduced. All hierarchy comes from weight (400/500/600/700) and size (11–20px).", "section": "typography" },
       { "name": "The Flat-By-Default Rule",   "body": "shadow-sm appears on three element types only: card wrappers, the data table wrapper, and the sticky tab rail. It is not applied to buttons, chips, individual table rows, or any decorative element.", "section": "elevation" },
       { "name": "The Shape Tier Rule",        "body": "Three radius values exist: 12px for containers, 6px for controls, full-pill for semantic labels and badges. No other radius is used.", "section": "shapes" }
     ],
     "dos": [
-      "Do use Gaia Crimson (#731514) exclusively on primary action buttons and the active tab bottom-border indicator.",
+      "Do use Gaia Crimson (#731514) on page header backgrounds, primary action buttons, and the active tab bottom-border indicator. In headers, use text-white/white-opacity for all text and controls.",
       "Do pair Caution Amber (#FF9311) and Caution Honey (#FFB051) chip backgrounds with text-gray-900 to meet WCAG AA contrast.",
       "Do sort rows so actionable states (CD, RS) appear first, non-actionable last (priority order: CD=1, RS=2, PRS=3, AS=4, AP=5, RO=6).",
       "Do use rounded-xl (12px) for containers, rounded-md (6px) for buttons, rounded-full for chips and badges.",
@@ -137,7 +137,7 @@
       "Do show a skeleton loader (not a spinner) during async data fetch to maintain layout stability."
     ],
     "donts": [
-      "Don't use Gaia Crimson (#731514) as a chip background, card stripe, section border, or heading color.",
+      "Don't use Gaia Crimson (#731514) as a chip background, card stripe, or section border.",
       "Don't introduce Angular Material or Bootstrap components. All UI is plain HTML + Tailwind.",
       "Don't use the URANO blue (#03678F) palette — that belongs to SGA-subsystem micro-frontends.",
       "Don't add shadows beyond shadow-sm or introduce backdrop-filter blur effects.",
