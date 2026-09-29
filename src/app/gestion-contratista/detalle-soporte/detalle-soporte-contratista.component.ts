@@ -1,4 +1,5 @@
-import { Component, ElementRef, ViewChild, computed, signal } from '@angular/core';
+import { Component, ElementRef, ViewChild, computed, inject, signal } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import { EstadoChipComponent } from '../../shared/components/estado-chip.component';
 import {
@@ -6,6 +7,7 @@ import {
   SingleSelectOption,
 } from '../../shared/components/single-select-dropdown.component';
 import { MAIN_NARROW, HDR_NARROW } from '../../shared/layout';
+import { crearDocumentoPlaceholderPDF } from '../../shared/doc-placeholder-pdf';
 
 export interface SoporteDoc {
   nombre: string;
@@ -166,6 +168,9 @@ export class DetalleSoporteContratistaComponent {
   readonly headerBackBtnCls =
     'inline-flex items-center gap-1.5 text-sm font-medium text-white/80 hover:text-white transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white rounded';
 
+  readonly visorCerrarBtnCls =
+    'inline-flex items-center justify-center rounded-md border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 transition-colors duration-150 hover:bg-gray-50 hover:border-gray-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#731514]';
+
   readonly primaryBtnCls =
     'inline-flex items-center justify-center gap-2 rounded-md bg-[#731514] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors duration-150 hover:bg-[#5e1212] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#731514] disabled:opacity-40 disabled:cursor-not-allowed';
 
@@ -198,12 +203,17 @@ export class DetalleSoporteContratistaComponent {
   // Present in DOM only when esEditable() && itemSeleccionado() && !esInforme()
   @ViewChild('fileInput') private readonly fileInputEl?: ElementRef<HTMLInputElement>;
 
+  // ── Services ───────────────────────────────────────────────────────────────
+  private readonly sanitizer = inject(DomSanitizer);
+
   // ── State ─────────────────────────────────────────────────────────────────
   readonly cargando = signal(true);
   readonly dropZoneActive = signal(false);
   readonly archivosStaged = signal<StagedFile[]>([]);
   readonly enviando = signal(false);
   readonly itemSeleccionado = signal<string>('');
+  readonly visorDocAbierto = signal(false);
+  readonly visorDocUrl = signal<SafeResourceUrl>('');
 
   readonly pagoMensualId: number;
   readonly contrato = signal<DetalleContrato | null>(null);
@@ -330,5 +340,18 @@ export class DetalleSoporteContratistaComponent {
       this.enviando.set(false);
       this.router.navigate(['/gestion-contratista/contratos']);
     }, 1200);
+  }
+
+  verDocumento(nombre: string): void {
+    const doc = crearDocumentoPlaceholderPDF(nombre);
+    (doc.getDataUrl() as Promise<string>).then((url: string) => {
+      this.visorDocUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(url));
+      this.visorDocAbierto.set(true);
+    });
+  }
+
+  cerrarVisorDoc(): void {
+    this.visorDocAbierto.set(false);
+    this.visorDocUrl.set('');
   }
 }

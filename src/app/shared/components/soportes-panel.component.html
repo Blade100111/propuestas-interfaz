@@ -70,6 +70,7 @@
               type="button"
               [class]="verDocBtnCls"
               [attr.aria-label]="'Ver documento ' + soporte.nombre"
+              (click)="verDocumento(soporte.nombre)"
             >
               Ver
             </button>
@@ -113,3 +114,30 @@
 
   }
 </aside>
+
+<!-- ── Visor de documento (placeholder) ── -->
+@if (visorDocAbierto()) {
+  <div
+    class="fixed inset-0 z-[70] flex flex-col"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Vista previa del documento"
+  >
+    <div class="flex shrink-0 items-center justify-between gap-4 border-b border-gray-200 bg-white px-4 py-3 shadow-sm">
+      <span class="text-sm font-semibold text-gray-900">Vista previa</span>
+      <button
+        type="button"
+        [class]="visorCerrarBtnCls"
+        (click)="cerrarVisorDoc()"
+        aria-label="Cerrar vista previa"
+      >
+        Cerrar
+      </button>
+    </div>
+    <iframe
+      [src]="visorDocUrl()"
+      class="min-h-0 w-full flex-1 border-0 bg-gray-100"
+      title="Vista previa del documento"
+    ></iframe>
+  </div>
+}

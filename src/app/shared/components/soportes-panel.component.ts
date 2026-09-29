@@ -1,5 +1,7 @@
-import { Component, computed, output, signal, input } from '@angular/core';
+import { Component, computed, inject, output, signal, input } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { EstadoChipComponent } from './estado-chip.component';
+import { crearDocumentoPlaceholderPDF } from '../doc-placeholder-pdf';
 
 export interface SoporteDocRevisable {
   id: number;
@@ -41,7 +43,11 @@ export class SoportesPanelComponent {
     return est !== undefined && this.actionableEstados().includes(est);
   });
 
+  private readonly sanitizer = inject(DomSanitizer);
+
   readonly observaciones = signal<Partial<Record<number, string>>>({});
+  readonly visorDocAbierto = signal(false);
+  readonly visorDocUrl = signal<SafeResourceUrl>('');
 
   readonly panelTransformCls = computed(() =>
     this.abierto() ? this.panelOpenCls : this.panelClosedCls,
@@ -54,6 +60,9 @@ export class SoportesPanelComponent {
 
   readonly verDocBtnCls =
     'shrink-0 rounded text-xs font-medium text-[#731514] hover:text-[#5e1212] hover:underline underline-offset-2 transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#731514]';
+
+  readonly visorCerrarBtnCls =
+    'inline-flex items-center justify-center rounded-md border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 transition-colors duration-150 hover:bg-gray-50 hover:border-gray-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#731514]';
 
   readonly closeBtnCls =
     'shrink-0 rounded p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#731514]';
@@ -72,6 +81,19 @@ export class SoportesPanelComponent {
   onObservacionInput(soporteId: number, event: Event): void {
     const value = (event.target as HTMLTextAreaElement).value;
     this.observaciones.update((obs) => ({ ...obs, [soporteId]: value }));
+  }
+
+  verDocumento(nombre: string): void {
+    const doc = crearDocumentoPlaceholderPDF(nombre);
+    (doc.getDataUrl() as Promise<string>).then((url: string) => {
+      this.visorDocUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(url));
+      this.visorDocAbierto.set(true);
+    });
+  }
+
+  cerrarVisorDoc(): void {
+    this.visorDocAbierto.set(false);
+    this.visorDocUrl.set('');
   }
 
   onCerrar(): void {
