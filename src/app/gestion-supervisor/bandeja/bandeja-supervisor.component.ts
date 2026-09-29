@@ -23,7 +23,7 @@ import { ConfirmDialogService } from '../../shared/services/confirm-dialog.servi
 import { TabBarComponent, TabItem } from '../../shared/components/tab-bar.component';
 import { MAIN_WIDE, HDR_WIDE } from '../../shared/layout';
 import { SORT_PRIORITY } from '../../shared/estado.constants';
-import { LOGO_UD } from '../../gestion-contratista/informe/logos';
+import { LOGO_UD_ESCUDO } from './logo-escudo-ud';
 import {
   crearCertificacionPDF,
   buildCertFilename,
@@ -65,9 +65,9 @@ const MESES_CERT = MES_NOMBRES_CERT.map((label, i) => ({ value: String(i + 1), l
 const THIS_YEAR = new Date().getFullYear();
 const ANIOS_CERT = [THIS_YEAR, THIS_YEAR - 1];
 const DEPENDENCIAS_CERT = [
-  'OF. ASESORA DE TECNOLOGIAS E INFORMACION',
-  'FACULTAD DE INGENIERIA',
-  'DIV. RECURSOS HUMANOS',
+  'OFICINA ASESORA DE TECNOLOGÍAS E INFORMACIÓN',
+  'FACULTAD DE INGENIERÍA',
+  'DIVISIÓN DE RECURSOS HUMANOS',
 ];
 
 const SOPORTES_BASE: SoporteDocRevisable[] = [
@@ -98,7 +98,7 @@ const SOPORTES_3: SoporteDocRevisable[] = [
 const MOCK_CUMPLIDOS: CumplidoBandejaItem[] = [
   {
     pagoMensualId: 2001,
-    dependencia: 'OF. ASESORA DE TECNOLOGIAS E INFORMACION',
+    dependencia: 'OFICINA ASESORA DE TECNOLOGÍAS E INFORMACIÓN',
     documento: '52.345.678',
     nombreContratista: 'Carlos Andres Martinez Lopez',
     numeroContrato: '789-2025',
@@ -115,9 +115,9 @@ const MOCK_CUMPLIDOS: CumplidoBandejaItem[] = [
   },
   {
     pagoMensualId: 2002,
-    dependencia: 'OF. ASESORA DE TECNOLOGIAS E INFORMACION',
+    dependencia: 'OFICINA ASESORA DE TECNOLOGÍAS E INFORMACIÓN',
     documento: '41.876.543',
-    nombreContratista: 'Laura Sofia Restrepo Diaz',
+    nombreContratista: 'Laura Sofía Restrepo Diaz',
     numeroContrato: '654-2025',
     vigencia: 2025,
     cdp: 3981,
@@ -132,7 +132,7 @@ const MOCK_CUMPLIDOS: CumplidoBandejaItem[] = [
   },
   {
     pagoMensualId: 2004,
-    dependencia: 'FACULTAD DE INGENIERIA',
+    dependencia: 'FACULTAD DE INGENIERÍA',
     documento: '80.234.567',
     nombreContratista: 'Juan David Herrera Ruiz',
     numeroContrato: '512-2025',
@@ -149,7 +149,7 @@ const MOCK_CUMPLIDOS: CumplidoBandejaItem[] = [
   },
   {
     pagoMensualId: 2005,
-    dependencia: 'FACULTAD DE INGENIERIA',
+    dependencia: 'FACULTAD DE INGENIERÍA',
     documento: '39.456.789',
     nombreContratista: 'Andrea Milena Parra Torres',
     numeroContrato: '401-2025',
@@ -166,7 +166,7 @@ const MOCK_CUMPLIDOS: CumplidoBandejaItem[] = [
   },
   {
     pagoMensualId: 2006,
-    dependencia: 'FACULTAD DE INGENIERIA',
+    dependencia: 'FACULTAD DE INGENIERÍA',
     documento: '80.234.567',
     nombreContratista: 'Juan David Herrera Ruiz',
     numeroContrato: '512-2025',
@@ -183,7 +183,7 @@ const MOCK_CUMPLIDOS: CumplidoBandejaItem[] = [
   },
   {
     pagoMensualId: 2007,
-    dependencia: 'DIV. RECURSOS HUMANOS',
+    dependencia: 'DIVISIÓN DE RECURSOS HUMANOS',
     documento: '51.789.012',
     nombreContratista: 'Diana Carolina Vargas Mendez',
     numeroContrato: '310-2025',
@@ -200,7 +200,7 @@ const MOCK_CUMPLIDOS: CumplidoBandejaItem[] = [
   },
   {
     pagoMensualId: 2008,
-    dependencia: 'DIV. RECURSOS HUMANOS',
+    dependencia: 'DIVISIÓN DE RECURSOS HUMANOS',
     documento: '79.345.123',
     nombreContratista: 'Felipe Santiago Ortiz Gomez',
     numeroContrato: '201-2025',
@@ -217,9 +217,9 @@ const MOCK_CUMPLIDOS: CumplidoBandejaItem[] = [
   },
   {
     pagoMensualId: 2009,
-    dependencia: 'OF. ASESORA DE TECNOLOGIAS E INFORMACION',
+    dependencia: 'OFICINA ASESORA DE TECNOLOGÍAS E INFORMACIÓN',
     documento: '41.876.543',
-    nombreContratista: 'Laura Sofia Restrepo Diaz',
+    nombreContratista: 'Laura Sofía Restrepo Diaz',
     numeroContrato: '654-2025',
     vigencia: 2025,
     cdp: 3982,
@@ -234,7 +234,7 @@ const MOCK_CUMPLIDOS: CumplidoBandejaItem[] = [
   },
   {
     pagoMensualId: 2011,
-    dependencia: 'DIV. RECURSOS HUMANOS',
+    dependencia: 'DIVISIÓN DE RECURSOS HUMANOS',
     documento: '51.789.012',
     nombreContratista: 'Diana Carolina Vargas Mendez',
     numeroContrato: '310-2025',
@@ -251,7 +251,7 @@ const MOCK_CUMPLIDOS: CumplidoBandejaItem[] = [
   },
   {
     pagoMensualId: 2012,
-    dependencia: 'OF. ASESORA DE TECNOLOGIAS E INFORMACION',
+    dependencia: 'OFICINA ASESORA DE TECNOLOGÍAS E INFORMACIÓN',
     documento: '52.345.678',
     nombreContratista: 'Carlos Andres Martinez Lopez',
     numeroContrato: '789-2025',
@@ -268,9 +268,9 @@ const MOCK_CUMPLIDOS: CumplidoBandejaItem[] = [
   },
   {
     pagoMensualId: 2013,
-    dependencia: 'OF. ASESORA DE TECNOLOGIAS E INFORMACION',
+    dependencia: 'OFICINA ASESORA DE TECNOLOGÍAS E INFORMACIÓN',
     documento: '41.876.543',
-    nombreContratista: 'Laura Sofia Restrepo Diaz',
+    nombreContratista: 'Laura Sofía Restrepo Diaz',
     numeroContrato: '654-2025',
     vigencia: 2025,
     cdp: 3983,
@@ -285,7 +285,7 @@ const MOCK_CUMPLIDOS: CumplidoBandejaItem[] = [
   },
   {
     pagoMensualId: 2014,
-    dependencia: 'OF. ASESORA DE TECNOLOGIAS E INFORMACION',
+    dependencia: 'OFICINA ASESORA DE TECNOLOGÍAS E INFORMACIÓN',
     documento: '79.012.345',
     nombreContratista: 'Ricardo Enrique Salazar Pena',
     numeroContrato: '823-2025',
@@ -302,7 +302,7 @@ const MOCK_CUMPLIDOS: CumplidoBandejaItem[] = [
   },
   {
     pagoMensualId: 2015,
-    dependencia: 'FACULTAD DE INGENIERIA',
+    dependencia: 'FACULTAD DE INGENIERÍA',
     documento: '80.234.567',
     nombreContratista: 'Juan David Herrera Ruiz',
     numeroContrato: '512-2025',
@@ -661,7 +661,7 @@ export class BandejaSupervisorComponent {
         anoSS: ss.ano,
         nombreSupervisor,
         rows: inversion.map(toRow),
-        logoImage: LOGO_UD,
+        logoImage: LOGO_UD_ESCUDO,
       });
       this.pdfFilenameInversion = buildCertFilename('Inversión');
       tabs.push({ id: 'inversion', label: 'Inversión', count: inversion.length });
@@ -677,7 +677,7 @@ export class BandejaSupervisorComponent {
         anoSS: ss.ano,
         nombreSupervisor,
         rows: funcionamiento.map(toRow),
-        logoImage: LOGO_UD,
+        logoImage: LOGO_UD_ESCUDO,
       });
       this.pdfFilenameFuncionamiento = buildCertFilename('Funcionamiento');
       tabs.push({ id: 'funcionamiento', label: 'Funcionamiento', count: funcionamiento.length });

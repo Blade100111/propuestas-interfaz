@@ -84,6 +84,7 @@ export function crearCertificacionPDF(params: CertificacionParams): any {
     {
       style: 'tableExample',
       table: {
+        widths: ['auto', '*', 'auto', 'auto', 'auto', 'auto'],
         body: [
           ['Documento', 'Nombre', 'Contrato', 'Cdp', 'Vigencia', 'Rubro'],
           ...rows.map((r) => [
