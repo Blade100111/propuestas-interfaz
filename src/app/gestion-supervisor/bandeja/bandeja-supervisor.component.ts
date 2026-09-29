@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import {
   DataTableComponent,
   TableColumn,
@@ -19,8 +20,16 @@ import {
 } from '../../shared/components/soportes-panel.component';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog.component';
 import { ConfirmDialogService } from '../../shared/services/confirm-dialog.service';
+import { TabBarComponent, TabItem } from '../../shared/components/tab-bar.component';
 import { MAIN_WIDE, HDR_WIDE } from '../../shared/layout';
 import { SORT_PRIORITY } from '../../shared/estado.constants';
+import { LOGO_UD } from '../../gestion-contratista/informe/logos';
+import {
+  crearCertificacionPDF,
+  buildCertFilename,
+  calcMesSeguridadSocial,
+  CertificacionRow,
+} from './generar-certificacion';
 
 interface CumplidoBandejaItem {
   pagoMensualId: number;
@@ -36,6 +45,7 @@ interface CumplidoBandejaItem {
   mesNombre: string;
   ano: number;
   estado: string;
+  rubro: string;
   soportes: SoporteDocRevisable[];
 }
 
@@ -100,6 +110,7 @@ const MOCK_CUMPLIDOS: CumplidoBandejaItem[] = [
     mesNombre: 'Julio',
     ano: 2025,
     estado: 'PRS',
+    rubro: 'Inversión',
     soportes: SOPORTES_3,
   },
   {
@@ -116,6 +127,7 @@ const MOCK_CUMPLIDOS: CumplidoBandejaItem[] = [
     mesNombre: 'Julio',
     ano: 2025,
     estado: 'PRS',
+    rubro: 'Funcionamiento',
     soportes: SOPORTES_BASE,
   },
   {
@@ -132,6 +144,7 @@ const MOCK_CUMPLIDOS: CumplidoBandejaItem[] = [
     mesNombre: 'Julio',
     ano: 2025,
     estado: 'PRS',
+    rubro: 'Inversión',
     soportes: SOPORTES_BASE,
   },
   {
@@ -148,6 +161,7 @@ const MOCK_CUMPLIDOS: CumplidoBandejaItem[] = [
     mesNombre: 'Julio',
     ano: 2025,
     estado: 'PRS',
+    rubro: 'Inversión',
     soportes: SOPORTES_3,
   },
   {
@@ -164,6 +178,7 @@ const MOCK_CUMPLIDOS: CumplidoBandejaItem[] = [
     mesNombre: 'Junio',
     ano: 2025,
     estado: 'PRS',
+    rubro: 'Inversión',
     soportes: SOPORTES_BASE,
   },
   {
@@ -180,6 +195,7 @@ const MOCK_CUMPLIDOS: CumplidoBandejaItem[] = [
     mesNombre: 'Julio',
     ano: 2025,
     estado: 'PRS',
+    rubro: 'Funcionamiento',
     soportes: SOPORTES_3,
   },
   {
@@ -196,6 +212,7 @@ const MOCK_CUMPLIDOS: CumplidoBandejaItem[] = [
     mesNombre: 'Julio',
     ano: 2025,
     estado: 'PRS',
+    rubro: 'Funcionamiento',
     soportes: SOPORTES_BASE,
   },
   {
@@ -212,6 +229,7 @@ const MOCK_CUMPLIDOS: CumplidoBandejaItem[] = [
     mesNombre: 'Julio',
     ano: 2025,
     estado: 'PRS',
+    rubro: 'Funcionamiento',
     soportes: SOPORTES_BASE,
   },
   {
@@ -228,6 +246,7 @@ const MOCK_CUMPLIDOS: CumplidoBandejaItem[] = [
     mesNombre: 'Junio',
     ano: 2025,
     estado: 'RS',
+    rubro: 'Funcionamiento',
     soportes: SOPORTES_BASE,
   },
   {
@@ -244,7 +263,59 @@ const MOCK_CUMPLIDOS: CumplidoBandejaItem[] = [
     mesNombre: 'Mayo',
     ano: 2025,
     estado: 'AP',
+    rubro: 'Inversión',
     soportes: SOPORTES_3,
+  },
+  {
+    pagoMensualId: 2013,
+    dependencia: 'OF. ASESORA DE TECNOLOGIAS E INFORMACION',
+    documento: '41.876.543',
+    nombreContratista: 'Laura Sofia Restrepo Diaz',
+    numeroContrato: '654-2025',
+    vigencia: 2025,
+    cdp: 3983,
+    tipoContrato: 'INICIAL',
+    esOtroSi: false,
+    mes: 5,
+    mesNombre: 'Mayo',
+    ano: 2025,
+    estado: 'AS',
+    rubro: 'Inversión',
+    soportes: SOPORTES_BASE,
+  },
+  {
+    pagoMensualId: 2014,
+    dependencia: 'OF. ASESORA DE TECNOLOGIAS E INFORMACION',
+    documento: '79.012.345',
+    nombreContratista: 'Ricardo Enrique Salazar Pena',
+    numeroContrato: '823-2025',
+    vigencia: 2025,
+    cdp: 4510,
+    tipoContrato: 'INICIAL',
+    esOtroSi: false,
+    mes: 5,
+    mesNombre: 'Mayo',
+    ano: 2025,
+    estado: 'AP',
+    rubro: 'Funcionamiento',
+    soportes: SOPORTES_3,
+  },
+  {
+    pagoMensualId: 2015,
+    dependencia: 'FACULTAD DE INGENIERIA',
+    documento: '80.234.567',
+    nombreContratista: 'Juan David Herrera Ruiz',
+    numeroContrato: '512-2025',
+    vigencia: 2025,
+    cdp: 3541,
+    tipoContrato: 'INICIAL',
+    esOtroSi: false,
+    mes: 5,
+    mesNombre: 'Mayo',
+    ano: 2025,
+    estado: 'AP',
+    rubro: 'Inversión',
+    soportes: SOPORTES_BASE,
   },
 ];
 
@@ -261,6 +332,7 @@ const MOCK_CUMPLIDOS: CumplidoBandejaItem[] = [
     SoportesPanelComponent,
     ConfirmDialogComponent,
     SingleSelectDropdownComponent,
+    TabBarComponent,
   ],
   templateUrl: './bandeja-supervisor.component.html',
 })
@@ -271,6 +343,7 @@ export class BandejaSupervisorComponent {
 
   // ── Services ───────────────────────────────────────────────────────────────
   private readonly confirmSvc = inject(ConfirmDialogService);
+  private readonly sanitizer = inject(DomSanitizer);
 
   // ── State ──────────────────────────────────────────────────────────────────
   readonly cargando = signal(true);
@@ -444,6 +517,25 @@ export class BandejaSupervisorComponent {
   readonly certAnio = signal('');
   readonly certFecha = signal('');
 
+  // ── Cert PDF viewer state ──────────────────────────────────────────────────
+  readonly visorAbierto = signal(false);
+  readonly visorTab = signal<'inversion' | 'funcionamiento'>('inversion');
+  readonly visorTabs = signal<TabItem[]>([]);
+  readonly pdfDataUrlInversion = signal<SafeResourceUrl>('');
+  readonly pdfDataUrlFuncionamiento = signal<SafeResourceUrl>('');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private pdfDocInversion: any = null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private pdfDocFuncionamiento: any = null;
+  private pdfFilenameInversion = '';
+  private pdfFilenameFuncionamiento = '';
+
+  readonly activePdfUrl = computed(() =>
+    this.visorTab() === 'inversion'
+      ? this.pdfDataUrlInversion()
+      : this.pdfDataUrlFuncionamiento(),
+  );
+
   // ── Literal class strings ──────────────────────────────────────────────────
   readonly selectCls =
     'block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm transition-colors duration-150 focus:border-[#731514] focus:outline-none focus:ring-2 focus:ring-[#731514]/30';
@@ -462,6 +554,12 @@ export class BandejaSupervisorComponent {
 
   readonly tipoBadgeOtroSiCls =
     'inline-flex items-center rounded-full bg-[#731514]/10 px-2 py-0.5 text-xs font-medium text-[#731514]';
+
+  readonly visorPrimaryBtnCls =
+    'inline-flex items-center justify-center gap-2 rounded-md bg-[#731514] px-4 py-2.5 text-sm font-medium text-white transition-colors duration-150 hover:bg-[#5e1212] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#731514]';
+
+  readonly visorGhostBtnCls =
+    'inline-flex items-center justify-center gap-2 rounded-md border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-600 transition-colors duration-150 hover:bg-gray-50 hover:border-gray-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#731514]';
 
   // ── Helpers ────────────────────────────────────────────────────────────────
   tipoBadgeClass(item: CumplidoBandejaItem): string {
@@ -499,13 +597,130 @@ export class BandejaSupervisorComponent {
   // ── Actions ────────────────────────────────────────────────────────────────
   // ── Cert section ───────────────────────────────────────────────────────────
   async generarCertificado(): Promise<void> {
-    await this.confirmSvc.confirm({
-      title: 'Certificado de cumplido',
-      message:
-        'La generacion de este certificado estara disponible proximamente. El modulo de exportacion PDF para supervisores esta en desarrollo.',
-      variant: 'info',
-      cancelLabel: 'Entendido',
+    const dep = this.certDependencia();
+    const mesStr = this.certMes();
+    const anoStr = this.certAnio();
+    const fecha = this.certFecha();
+
+    if (!dep || !mesStr || !anoStr || !fecha) {
+      await this.confirmSvc.confirm({
+        title: 'Campos incompletos',
+        message:
+          'Seleccione la dependencia, mes, ano y fecha de aprobacion para generar el certificado.',
+        variant: 'info',
+        cancelLabel: 'Entendido',
+      });
+      return;
+    }
+
+    const mes = parseInt(mesStr, 10);
+    const ano = parseInt(anoStr, 10);
+
+    const elegibles = this.cumplidos().filter(
+      (c) =>
+        c.dependencia === dep &&
+        c.mes === mes &&
+        c.ano === ano &&
+        (c.estado === 'AS' || c.estado === 'AP'),
+    );
+
+    if (elegibles.length === 0) {
+      await this.confirmSvc.confirm({
+        title: 'Sin resultados',
+        message: 'No hay cumplidos aprobados para la dependencia, mes y ano seleccionados.',
+        variant: 'info',
+        cancelLabel: 'Entendido',
+      });
+      return;
+    }
+
+    const inversion = elegibles.filter((c) => c.rubro === 'Inversión');
+    const funcionamiento = elegibles.filter((c) => c.rubro === 'Funcionamiento');
+    const mesNombre = MES_NOMBRES_CERT[mes - 1];
+    const ss = calcMesSeguridadSocial(mes, ano);
+    const nombreSupervisor = 'MARIA FERNANDA OSPINA RUIZ';
+
+    const toRow = (c: CumplidoBandejaItem): CertificacionRow => ({
+      documento: c.documento,
+      nombre: c.nombreContratista,
+      contrato: c.numeroContrato,
+      cdp: c.cdp,
+      vigencia: c.vigencia,
+      rubro: c.rubro,
     });
+
+    const tabs: TabItem[] = [];
+
+    if (inversion.length > 0) {
+      this.pdfDocInversion = crearCertificacionPDF({
+        rubro: 'Inversión',
+        dependencia: dep,
+        mesNombre,
+        ano,
+        mesNombreSS: ss.mesNombre,
+        anoSS: ss.ano,
+        nombreSupervisor,
+        rows: inversion.map(toRow),
+        logoImage: LOGO_UD,
+      });
+      this.pdfFilenameInversion = buildCertFilename('Inversión');
+      tabs.push({ id: 'inversion', label: 'Inversión', count: inversion.length });
+    }
+
+    if (funcionamiento.length > 0) {
+      this.pdfDocFuncionamiento = crearCertificacionPDF({
+        rubro: 'Funcionamiento',
+        dependencia: dep,
+        mesNombre,
+        ano,
+        mesNombreSS: ss.mesNombre,
+        anoSS: ss.ano,
+        nombreSupervisor,
+        rows: funcionamiento.map(toRow),
+        logoImage: LOGO_UD,
+      });
+      this.pdfFilenameFuncionamiento = buildCertFilename('Funcionamiento');
+      tabs.push({ id: 'funcionamiento', label: 'Funcionamiento', count: funcionamiento.length });
+    }
+
+    this.visorTabs.set(tabs);
+    this.visorTab.set(tabs[0].id as 'inversion' | 'funcionamiento');
+
+    const promises: Promise<void>[] = [];
+    if (this.pdfDocInversion) {
+      promises.push(
+        (this.pdfDocInversion.getDataUrl() as Promise<string>).then((url: string) => {
+          this.pdfDataUrlInversion.set(this.sanitizer.bypassSecurityTrustResourceUrl(url));
+        }),
+      );
+    }
+    if (this.pdfDocFuncionamiento) {
+      promises.push(
+        (this.pdfDocFuncionamiento.getDataUrl() as Promise<string>).then((url: string) => {
+          this.pdfDataUrlFuncionamiento.set(this.sanitizer.bypassSecurityTrustResourceUrl(url));
+        }),
+      );
+    }
+
+    await Promise.all(promises);
+    this.visorAbierto.set(true);
+  }
+
+  descargarPDFs(): void {
+    if (this.pdfDocInversion) {
+      this.pdfDocInversion.download(this.pdfFilenameInversion);
+    }
+    if (this.pdfDocFuncionamiento) {
+      this.pdfDocFuncionamiento.download(this.pdfFilenameFuncionamiento);
+    }
+  }
+
+  cerrarVisor(): void {
+    this.visorAbierto.set(false);
+    this.pdfDataUrlInversion.set('');
+    this.pdfDataUrlFuncionamiento.set('');
+    this.pdfDocInversion = null;
+    this.pdfDocFuncionamiento = null;
   }
 
   async handleAprobar(pagoMensualId: number): Promise<void> {

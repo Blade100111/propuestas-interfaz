@@ -312,6 +312,63 @@
     (rechazar)="handleRechazar($event)"
   />
 
+  <!-- ── Visor PDF certificacion ────────────────────────────────────────── -->
+  @if (visorAbierto()) {
+    <div
+      class="fixed inset-0 z-50 flex flex-col"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Vista previa de la certificacion de cumplido"
+    >
+      <!-- Toolbar -->
+      <div class="flex shrink-0 items-center justify-between gap-4 border-b border-gray-200 bg-white px-4 py-3 shadow-sm">
+        <span class="text-sm font-semibold text-gray-900">Vista previa — Certificacion de cumplido</span>
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            [class]="visorPrimaryBtnCls"
+            (click)="descargarPDFs()"
+            aria-label="Guardar y descargar los certificados como PDF"
+          >
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"
+                 stroke="currentColor" stroke-width="1.75"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M8 2v8M5 7l3 3 3-3"/>
+              <path d="M3 13h10"/>
+            </svg>
+            Guardar
+          </button>
+          <button
+            type="button"
+            [class]="visorGhostBtnCls"
+            (click)="cerrarVisor()"
+            aria-label="Cancelar y cerrar la vista previa"
+          >
+            Cancelar
+          </button>
+        </div>
+      </div>
+
+      <!-- Tab bar: solo cuando hay dos rubros -->
+      @if (visorTabs().length > 1) {
+        <nav class="border-b border-gray-200 bg-white px-4">
+          <app-tab-bar
+            [tabs]="visorTabs()"
+            [active]="visorTab()"
+            (activeChange)="visorTab.set($any($event))"
+          />
+        </nav>
+      }
+
+      <!-- iframe PDF -->
+      <iframe
+        [src]="activePdfUrl()"
+        class="min-h-0 w-full flex-1 border-0 bg-gray-100"
+        title="Vista previa de la certificacion de cumplido"
+      ></iframe>
+    </div>
+  }
+
   <!-- ── Confirm dialog ─────────────────────────────────────────────────── -->
   <app-confirm-dialog />
 
