@@ -15,9 +15,12 @@
       "prefix": "app",
       "architect": {
         "build": {
-          "builder": "@angular/build:application",
+          "builder": "@angular-builders/custom-webpack:browser",
           "options": {
-            "browser": "src/main.ts",
+            "outputPath": "dist",
+            "main": "src/main.single-spa.ts",
+            "index": "src/index.html",
+            "baseHref": "",
             "tsConfig": "tsconfig.app.json",
             "allowedCommonJsDependencies": ["pdfmake", "pdfmake/build/fonts/Roboto"],
             "assets": [
@@ -28,43 +31,51 @@
             ],
             "styles": [
               "src/styles.css"
-            ]
+            ],
+            "customWebpackConfig": {
+              "path": "extra-webpack.config.js",
+              "libraryName": "propuestas-interfaz",
+              "libraryTarget": "umd"
+            }
           },
           "configurations": {
             "production": {
-              "budgets": [
-                {
-                  "type": "initial",
-                  "maximumWarning": "500kB",
-                  "maximumError": "1MB"
-                },
-                {
-                  "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
-                }
-              ],
-              "outputHashing": "all"
+              "outputHashing": "none"
             },
             "development": {
               "optimization": false,
               "extractLicenses": false,
-              "sourceMap": true
+              "sourceMap": true,
+              "outputHashing": "none"
+            },
+            "local": {
+              "optimization": false,
+              "sourceMap": true,
+              "namedChunks": true,
+              "outputHashing": "none",
+              "deployUrl": "http://localhost:4204/"
             }
           },
-          "defaultConfiguration": "production"
+          "defaultConfiguration": "local"
         },
         "serve": {
-          "builder": "@angular/build:dev-server",
+          "builder": "@angular-builders/custom-webpack:dev-server",
+          "options": {
+            "port": 4204,
+            "publicHost": "http://localhost:4204"
+          },
           "configurations": {
             "production": {
               "buildTarget": "propuestas-interfaz:build:production"
             },
             "development": {
               "buildTarget": "propuestas-interfaz:build:development"
+            },
+            "local": {
+              "buildTarget": "propuestas-interfaz:build:local"
             }
           },
-          "defaultConfiguration": "development"
+          "defaultConfiguration": "local"
         },
         "test": {
           "builder": "@angular/build:unit-test"
