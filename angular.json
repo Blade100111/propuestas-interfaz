@@ -62,7 +62,10 @@
           "builder": "@angular-builders/custom-webpack:dev-server",
           "options": {
             "port": 4204,
-            "publicHost": "http://localhost:4204"
+            "publicHost": "http://localhost:4204",
+            "headers": {
+              "Access-Control-Allow-Origin": "*"
+            }
           },
           "configurations": {
             "production": {
