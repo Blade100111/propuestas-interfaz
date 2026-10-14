@@ -1,4 +1,4 @@
-import { Component, computed, inject, output, signal, input } from '@angular/core';
+import { Component, computed, effect, inject, output, signal, input } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { EstadoChipComponent } from './estado-chip.component';
 import { crearDocumentoPlaceholderPDF } from '../doc-placeholder-pdf';
@@ -94,6 +94,14 @@ export class SoportesPanelComponent {
   cerrarVisorDoc(): void {
     this.visorDocAbierto.set(false);
     this.visorDocUrl.set('');
+  }
+
+  constructor() {
+    effect(() => {
+      if (!this.abierto()) {
+        this.cerrarVisorDoc();
+      }
+    });
   }
 
   onCerrar(): void {

@@ -51,6 +51,7 @@ interface CumplidoBandejaItem {
 
 type SortCol =
   | 'dependencia'
+  | 'rubro'
   | 'contrato'
   | 'vigencia'
   | 'mes'
@@ -353,6 +354,7 @@ export class BandejaSupervisorComponent {
   readonly sortDirection = signal<'asc' | 'desc'>('asc');
   readonly selectedItem = signal<CumplidoBandejaItem | null>(null);
   readonly colFilterValues = signal<Record<string, string[]>>({});
+  readonly selectedIds = signal<Set<number>>(new Set());
 
   // ── Computed ───────────────────────────────────────────────────────────────
   readonly cumplidosFiltrados = computed(() => {
@@ -371,6 +373,7 @@ export class BandejaSupervisorComponent {
 
     const filters = this.colFilterValues();
     if (filters['dependencia']?.length) list = list.filter((c) => filters['dependencia'].includes(c.dependencia));
+    if (filters['rubro']?.length) list = list.filter((c) => filters['rubro'].includes(c.rubro));
     if (filters['tipo']?.length) list = list.filter((c) => filters['tipo'].includes(String(c.esOtroSi)));
     if (filters['vigencia']?.length) list = list.filter((c) => filters['vigencia'].includes(String(c.vigencia)));
     if (filters['mes']?.length) list = list.filter((c) => filters['mes'].includes(String(c.mes)));
@@ -382,6 +385,8 @@ export class BandejaSupervisorComponent {
 
     if (col === 'dependencia') {
       list = [...list].sort((a, b) => a.dependencia.localeCompare(b.dependencia) * dir);
+    } else if (col === 'rubro') {
+      list = [...list].sort((a, b) => a.rubro.localeCompare(b.rubro) * dir);
     } else if (col === 'contrato') {
       list = [...list].sort((a, b) => a.numeroContrato.localeCompare(b.numeroContrato) * dir);
     } else if (col === 'vigencia') {
@@ -405,6 +410,19 @@ export class BandejaSupervisorComponent {
     return `${n} cumplido${n !== 1 ? 's' : ''}${suffix}`;
   });
 
+  readonly selectedCount = computed(() => this.selectedIds().size);
+
+  readonly prsCount = computed(
+    () => this.cumplidosFiltrados().filter((c) => c.estado === 'PRS').length,
+  );
+
+  readonly allPrsSelected = computed(() => {
+    const visiblePrs = this.cumplidosFiltrados().filter((c) => c.estado === 'PRS');
+    if (visiblePrs.length === 0) return false;
+    const sel = this.selectedIds();
+    return visiblePrs.every((c) => sel.has(c.pagoMensualId));
+  });
+
   readonly panelData = computed((): PanelCumplidoData | null => {
     const item = this.selectedItem();
     if (!item) return null;
@@ -423,6 +441,14 @@ export class BandejaSupervisorComponent {
   // ── Columns ────────────────────────────────────────────────────────────────
   readonly tableColumns: TableColumn[] = [
     {
+      key: 'select',
+      header: '',
+      sortable: false,
+      thClass: 'w-10 py-3.5 pl-5 pr-0',
+      skHdr: 'h-2.5 w-4 animate-pulse rounded bg-gray-200 ml-1',
+      skCell: 'h-4 w-4 animate-pulse rounded bg-gray-100 mx-auto',
+    },
+    {
       key: 'dependencia',
       header: 'Dependencia',
       sortable: true,
@@ -430,6 +456,15 @@ export class BandejaSupervisorComponent {
       thClass: 'hidden px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 lg:table-cell',
       skHdr: 'hidden h-2.5 flex-1 animate-pulse rounded bg-gray-200 lg:block',
       skCell: 'hidden h-4 w-40 animate-pulse rounded bg-gray-100 lg:block',
+    },
+    {
+      key: 'rubro',
+      header: 'Rubro',
+      sortable: true,
+      filterOptions: [...new Set(MOCK_CUMPLIDOS.map((c) => c.rubro))].sort().map((r) => ({ value: r, label: r })),
+      thClass: 'hidden px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 lg:table-cell',
+      skHdr: 'hidden h-2.5 w-24 animate-pulse rounded bg-gray-200 lg:block',
+      skCell: 'hidden h-5 w-28 animate-pulse rounded-full bg-gray-100 lg:block',
     },
     {
       key: 'documento',
@@ -460,29 +495,9 @@ export class BandejaSupervisorComponent {
       header: 'Vigencia',
       sortable: true,
       filterOptions: [{ value: '2025', label: '2025' }],
-      thClass: 'hidden px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 lg:table-cell',
-      skHdr: 'hidden h-2.5 w-14 animate-pulse rounded bg-gray-200 lg:block',
-      skCell: 'hidden h-4 w-14 animate-pulse rounded bg-gray-100 lg:block',
-    },
-    {
-      key: 'cdp',
-      header: 'CDP',
-      sortable: false,
-      thClass: 'hidden px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 lg:table-cell',
-      skHdr: 'hidden h-2.5 w-12 animate-pulse rounded bg-gray-200 lg:block',
-      skCell: 'hidden h-4 w-12 animate-pulse rounded bg-gray-100 lg:block',
-    },
-    {
-      key: 'tipo',
-      header: 'Tipo',
-      sortable: false,
-      filterOptions: [
-        { value: 'false', label: 'Inicial' },
-        { value: 'true',  label: 'Otro S\u00ed' },
-      ],
-      thClass: 'hidden px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 lg:table-cell',
-      skHdr: 'hidden h-2.5 w-16 animate-pulse rounded bg-gray-200 lg:block',
-      skCell: 'hidden h-5 w-16 animate-pulse rounded-full bg-gray-100 lg:block',
+      thClass: 'hidden px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 xl:table-cell',
+      skHdr: 'hidden h-2.5 w-14 animate-pulse rounded bg-gray-200 xl:block',
+      skCell: 'hidden h-4 w-14 animate-pulse rounded bg-gray-100 xl:block',
     },
     {
       key: 'mes',
@@ -576,6 +591,18 @@ export class BandejaSupervisorComponent {
   readonly tipoBadgeOtroSiCls =
     'inline-flex items-center rounded-full bg-[#731514]/10 px-2 py-0.5 text-xs font-medium text-[#731514]';
 
+  readonly rubroInversionCls =
+    'inline-flex items-center rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700';
+
+  readonly rubroFuncionamientoCls =
+    'inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600';
+
+  readonly checkboxCls =
+    'h-4 w-4 cursor-pointer rounded border-gray-300 accent-[#731514]';
+
+  readonly aprobarSelBtnCls =
+    'inline-flex items-center justify-center gap-1.5 rounded-md bg-[#731514] px-3 py-1.5 text-sm font-semibold text-white shadow-sm transition-colors duration-150 hover:bg-[#5e1212] disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#731514]';
+
   readonly visorPrimaryBtnCls =
     'inline-flex items-center justify-center gap-2 rounded-md bg-[#731514] px-4 py-2.5 text-sm font-medium text-white transition-colors duration-150 hover:bg-[#5e1212] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#731514]';
 
@@ -587,12 +614,49 @@ export class BandejaSupervisorComponent {
     return item.esOtroSi ? this.tipoBadgeOtroSiCls : this.tipoBadgeInicialCls;
   }
 
+  rubroBadgeClass(rubro: string): string {
+    return rubro === 'Inversión' ? this.rubroInversionCls : this.rubroFuncionamientoCls;
+  }
+
   accionBtnClass(estado: string): string {
     return estado === 'PRS' ? this.primaryBtnCls : this.ghostBtnCls;
   }
 
   accionBtnLabel(estado: string): string {
     return estado === 'PRS' ? 'Revisar' : 'Ver detalle';
+  }
+
+  isSelected(id: number): boolean {
+    return this.selectedIds().has(id);
+  }
+
+  toggleSelectAll(): void {
+    const visiblePrs = this.cumplidosFiltrados().filter((c) => c.estado === 'PRS');
+    if (this.allPrsSelected()) {
+      this.selectedIds.update((set) => {
+        const next = new Set(set);
+        visiblePrs.forEach((c) => next.delete(c.pagoMensualId));
+        return next;
+      });
+    } else {
+      this.selectedIds.update((set) => {
+        const next = new Set(set);
+        visiblePrs.forEach((c) => next.add(c.pagoMensualId));
+        return next;
+      });
+    }
+  }
+
+  toggleSelect(id: number): void {
+    this.selectedIds.update((set) => {
+      const next = new Set(set);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
   }
 
   // ── Sorting & Filtering ────────────────────────────────────────────────────
@@ -748,6 +812,26 @@ export class BandejaSupervisorComponent {
     this.pdfDocFuncionamiento = null;
   }
 
+  async handleAprobarSeleccionados(): Promise<void> {
+    const ids = [...this.selectedIds()];
+    if (ids.length === 0) return;
+    const result = await this.confirmSvc.confirm({
+      title: 'Aprobar seleccionados',
+      message: `\u00bfConfirma la aprobaci\u00f3n de ${ids.length} cumplido${ids.length !== 1 ? 's' : ''}? El estado cambiar\u00e1 a Aprobado por supervisor.`,
+      confirmLabel: 'Aprobar',
+      variant: 'default',
+    });
+    if (!result.confirmed) return;
+    this.cumplidos.update((list) =>
+      list.map((item) =>
+        !ids.includes(item.pagoMensualId) || item.estado !== 'PRS'
+          ? item
+          : { ...item, estado: 'AS' },
+      ),
+    );
+    this.selectedIds.set(new Set());
+  }
+
   async handleAprobar(pagoMensualId: number): Promise<void> {
     const result = await this.confirmSvc.confirm({
       title: 'Aprobar cumplido',
@@ -762,6 +846,11 @@ export class BandejaSupervisorComponent {
         item.pagoMensualId !== pagoMensualId ? item : { ...item, estado: 'AS' },
       ),
     );
+    this.selectedIds.update((set) => {
+      const next = new Set(set);
+      next.delete(pagoMensualId);
+      return next;
+    });
     this.selectedItem.set(null);
   }
 
@@ -781,6 +870,11 @@ export class BandejaSupervisorComponent {
         item.pagoMensualId !== pagoMensualId ? item : { ...item, estado: 'RS' },
       ),
     );
+    this.selectedIds.update((set) => {
+      const next = new Set(set);
+      next.delete(pagoMensualId);
+      return next;
+    });
     this.selectedItem.set(null);
   }
 

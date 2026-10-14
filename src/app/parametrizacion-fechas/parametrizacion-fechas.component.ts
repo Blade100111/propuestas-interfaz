@@ -17,6 +17,8 @@ interface FechaParametrizada {
   tipo: 'no_periodo' | 'periodo';
   fechaInicio: string | null; // 'YYYY-MM-DD'
   fechaFin: string | null;
+  horaInicio: string | null;  // 'HH:mm'
+  horaFin: string | null;     // 'HH:mm'
 }
 
 // ── Static helpers ─────────────────────────────────────────────────────────────
@@ -43,16 +45,16 @@ const MESES_OPTIONS: SingleSelectOption[] = MES_NOMBRES.map((label, i) => ({
 let NEXT_ID = 10;
 const MOCK_FECHAS: FechaParametrizada[] = [
   // 2025
-  { id: 1,  anio: 2025, mes: 1,  mesNombre: 'Enero',      tipo: 'no_periodo', fechaInicio: null,         fechaFin: null         },
-  { id: 2,  anio: 2025, mes: 2,  mesNombre: 'Febrero',    tipo: 'periodo',    fechaInicio: '2025-02-01', fechaFin: '2025-02-15'  },
-  { id: 3,  anio: 2025, mes: 3,  mesNombre: 'Marzo',      tipo: 'no_periodo', fechaInicio: null,         fechaFin: null         },
-  { id: 4,  anio: 2025, mes: 4,  mesNombre: 'Abril',      tipo: 'periodo',    fechaInicio: '2025-04-01', fechaFin: '2025-04-30'  },
-  { id: 5,  anio: 2025, mes: 5,  mesNombre: 'Mayo',       tipo: 'no_periodo', fechaInicio: null,         fechaFin: null         },
-  { id: 6,  anio: 2025, mes: 6,  mesNombre: 'Junio',      tipo: 'periodo',    fechaInicio: '2025-06-02', fechaFin: '2025-06-20'  },
-  { id: 7,  anio: 2025, mes: 7,  mesNombre: 'Julio',      tipo: 'no_periodo', fechaInicio: null,         fechaFin: null         },
+  { id: 1,  anio: 2025, mes: 1,  mesNombre: 'Enero',      tipo: 'no_periodo', fechaInicio: null,         fechaFin: null,         horaInicio: null,  horaFin: null  },
+  { id: 2,  anio: 2025, mes: 2,  mesNombre: 'Febrero',    tipo: 'periodo',    fechaInicio: '2025-02-01', fechaFin: '2025-02-15', horaInicio: '00:00', horaFin: '23:59' },
+  { id: 3,  anio: 2025, mes: 3,  mesNombre: 'Marzo',      tipo: 'no_periodo', fechaInicio: null,         fechaFin: null,         horaInicio: null,  horaFin: null  },
+  { id: 4,  anio: 2025, mes: 4,  mesNombre: 'Abril',      tipo: 'periodo',    fechaInicio: '2025-04-01', fechaFin: '2025-04-30', horaInicio: '08:00', horaFin: '17:00' },
+  { id: 5,  anio: 2025, mes: 5,  mesNombre: 'Mayo',       tipo: 'no_periodo', fechaInicio: null,         fechaFin: null,         horaInicio: null,  horaFin: null  },
+  { id: 6,  anio: 2025, mes: 6,  mesNombre: 'Junio',      tipo: 'periodo',    fechaInicio: '2025-06-02', fechaFin: '2025-06-20', horaInicio: '00:00', horaFin: '23:59' },
+  { id: 7,  anio: 2025, mes: 7,  mesNombre: 'Julio',      tipo: 'no_periodo', fechaInicio: null,         fechaFin: null,         horaInicio: null,  horaFin: null  },
   // 2024
-  { id: 8,  anio: 2024, mes: 11, mesNombre: 'Noviembre',  tipo: 'periodo',    fechaInicio: '2024-11-05', fechaFin: '2024-11-25'  },
-  { id: 9,  anio: 2024, mes: 12, mesNombre: 'Diciembre',  tipo: 'no_periodo', fechaInicio: null,         fechaFin: null         },
+  { id: 8,  anio: 2024, mes: 11, mesNombre: 'Noviembre',  tipo: 'periodo',    fechaInicio: '2024-11-05', fechaFin: '2024-11-25', horaInicio: '00:00', horaFin: '18:00' },
+  { id: 9,  anio: 2024, mes: 12, mesNombre: 'Diciembre',  tipo: 'no_periodo', fechaInicio: null,         fechaFin: null,         horaInicio: null,  horaFin: null  },
 ];
 
 function fmtDate(iso: string): string {
@@ -95,6 +97,8 @@ export class ParametrizacionFechasComponent {
   readonly opcion       = signal<Opcion>('');
   readonly fechaInicio  = signal('');
   readonly fechaFin     = signal('');
+  readonly horaInicio   = signal('00:00');
+  readonly horaFin      = signal('23:59');
   readonly formError    = signal<string | null>(null);
   readonly guardadoOk   = signal(false);
 
@@ -123,7 +127,9 @@ export class ParametrizacionFechasComponent {
     const fi = this.fechaInicio();
     const ff = this.fechaFin();
     if (!fi || !ff) return true; // caught separately
-    return fi <= ff;
+    const dtInicio = `${fi}T${this.horaInicio()}`;
+    const dtFin    = `${ff}T${this.horaFin()}`;
+    return dtInicio <= dtFin;
   });
 
   // ── Literal class strings ─────────────────────────────────────────────────
@@ -170,12 +176,16 @@ export class ParametrizacionFechasComponent {
       this.opcion.set(existente.tipo);
       this.fechaInicio.set(existente.fechaInicio ?? '');
       this.fechaFin.set(existente.fechaFin ?? '');
+      this.horaInicio.set(existente.horaInicio ?? '00:00');
+      this.horaFin.set(existente.horaFin ?? '23:59');
     } else {
       this.fechaExiste.set(false);
       this.fechaId.set(null);
       this.opcion.set('');
       this.fechaInicio.set('');
       this.fechaFin.set('');
+      this.horaInicio.set('00:00');
+      this.horaFin.set('23:59');
     }
 
     this.mostrar.set(true);
@@ -215,6 +225,8 @@ export class ParametrizacionFechasComponent {
                 tipo:        esPeriodo ? 'periodo' : 'no_periodo',
                 fechaInicio: esPeriodo ? this.fechaInicio() : null,
                 fechaFin:    esPeriodo ? this.fechaFin()    : null,
+                horaInicio:  esPeriodo ? this.horaInicio()  : null,
+                horaFin:     esPeriodo ? this.horaFin()     : null,
               },
         ),
       );
@@ -228,6 +240,8 @@ export class ParametrizacionFechasComponent {
         tipo:        esPeriodo ? 'periodo' : 'no_periodo',
         fechaInicio: esPeriodo ? this.fechaInicio() : null,
         fechaFin:    esPeriodo ? this.fechaFin()    : null,
+        horaInicio:  esPeriodo ? this.horaInicio()  : null,
+        horaFin:     esPeriodo ? this.horaFin()     : null,
       };
       this._fechas.update((list) => [...list, nuevo]);
       this.fechaExiste.set(true);
@@ -244,6 +258,8 @@ export class ParametrizacionFechasComponent {
     this.opcion.set(f.tipo);
     this.fechaInicio.set(f.fechaInicio ?? '');
     this.fechaFin.set(f.fechaFin ?? '');
+    this.horaInicio.set(f.horaInicio ?? '00:00');
+    this.horaFin.set(f.horaFin ?? '23:59');
     this.fechaExiste.set(true);
     this.fechaId.set(f.id);
     this.mostrar.set(true);
@@ -253,5 +269,10 @@ export class ParametrizacionFechasComponent {
 
   fmtDate(iso: string | null): string {
     return iso ? fmtDate(iso) : '—';
+  }
+
+  fmtDateTime(fecha: string | null, hora: string | null): string {
+    if (!fecha) return '—';
+    return hora ? `${fmtDate(fecha)} ${hora}` : fmtDate(fecha);
   }
 }
