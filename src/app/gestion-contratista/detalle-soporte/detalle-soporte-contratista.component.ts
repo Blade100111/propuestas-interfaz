@@ -6,6 +6,8 @@ import {
   SingleSelectDropdownComponent,
   SingleSelectOption,
 } from '../../shared/components/single-select-dropdown.component';
+import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog.component';
+import { ConfirmDialogService } from '../../shared/services/confirm-dialog.service';
 import { MAIN_NARROW, HDR_NARROW } from '../../shared/layout';
 import { crearDocumentoPlaceholderPDF } from '../../shared/doc-placeholder-pdf';
 
@@ -143,7 +145,6 @@ export const MOCK_DETALLES: DetalleContrato[] = [
 const ITEMS_SOPORTE = [
   { id: 'salud-pension',   label: 'Salud y Pensión' },
   { id: 'informe-gestion', label: 'Informe de Gestión y Certificado' },
-  { id: 'cumplido',        label: 'Cumplido' },
   { id: 'otras',           label: 'Otras' },
 ] as const;
 
@@ -153,7 +154,7 @@ const MAX_FILE_MB = 1; // confirmed: maxFileSize: 1000 KB / fileModel.size <= 10
 @Component({
   selector: 'app-detalle-soporte-contratista',
   standalone: true,
-  imports: [EstadoChipComponent, SingleSelectDropdownComponent],
+  imports: [EstadoChipComponent, SingleSelectDropdownComponent, ConfirmDialogComponent],
   templateUrl: './detalle-soporte-contratista.component.html',
 })
 export class DetalleSoporteContratistaComponent {
@@ -205,6 +206,7 @@ export class DetalleSoporteContratistaComponent {
 
   // ── Services ───────────────────────────────────────────────────────────────
   private readonly sanitizer = inject(DomSanitizer);
+  private readonly confirmSvc = inject(ConfirmDialogService);
 
   // ── State ─────────────────────────────────────────────────────────────────
   readonly cargando = signal(true);
@@ -336,8 +338,15 @@ export class DetalleSoporteContratistaComponent {
     this.router.navigate(['/gestion-contratista/informe', this.pagoMensualId]);
   }
 
-  enviarARevision(): void {
+  async enviarARevision(): Promise<void> {
     if (!this.puedeEnviar()) return;
+    const result = await this.confirmSvc.confirm({
+      title: 'Enviar a revisión',
+      message: '¿Confirmas el envío de los soportes a revisión del supervisor? No podrás modificar los documentos mientras estén en revisión.',
+      confirmLabel: 'Enviar',
+      cancelLabel: 'Cancelar',
+    });
+    if (!result.confirmed) return;
     this.enviando.set(true);
     // Simulate async submission; in production: PUT pago_mensual + POST soporte_pago_mensual
     setTimeout(() => {
