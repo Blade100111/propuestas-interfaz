@@ -46,7 +46,13 @@ import {
     </button>
 
     @if (open()) {
-      <div [class]="dropdownCls" role="listbox" aria-multiselectable="true">
+      <div
+        [class]="dropdownCls"
+        [style.top.px]="dropdownPos().top"
+        [style.left.px]="dropdownPos().left"
+        role="listbox"
+        aria-multiselectable="true"
+      >
         <div class="max-h-48 overflow-y-auto py-1">
           @for (opt of options(); track opt.value) {
             <label
@@ -83,6 +89,7 @@ export class ColumnFilterComponent {
   readonly valueChange = output<string[]>();
 
   readonly open = signal(false);
+  readonly dropdownPos = signal({ top: 0, left: 0 });
 
   /** Hay filtro activo cuando hay al menos una opción seleccionada, pero no todas. */
   readonly isActive = computed(() => {
@@ -96,13 +103,21 @@ export class ColumnFilterComponent {
   readonly activeTriggerCls =
     'flex items-center justify-center rounded p-0.5 text-[#731514] transition-colors duration-150 hover:bg-[#731514]/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#731514]';
   readonly dropdownCls =
-    'absolute left-1/2 top-full z-50 mt-1 min-w-[9rem] -translate-x-1/2 rounded-lg border border-gray-200 bg-white shadow-lg';
+    'fixed z-50 min-w-max -translate-x-1/2 rounded-lg border border-gray-200 bg-white shadow-lg';
 
   constructor(private readonly el: ElementRef) {}
 
-  /** Abre/cierra el dropdown. stopPropagation impide que document:click lo cierre inmediatamente. */
+  /** Abre/cierra el dropdown. Calcula posición fixed para escapar del overflow-hidden del padre. */
   toggleOpen(event: MouseEvent): void {
     event.stopPropagation();
+    if (!this.open()) {
+      const btn = event.currentTarget as HTMLElement;
+      const rect = btn.getBoundingClientRect();
+      this.dropdownPos.set({
+        top: rect.bottom + 4,
+        left: rect.left + rect.width / 2,
+      });
+    }
     this.open.update((v) => !v);
   }
 
