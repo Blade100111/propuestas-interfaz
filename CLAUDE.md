@@ -97,3 +97,7 @@ Los documentos de referencia de negocio y arquitectura están en `cumplidos_mf`,
 - **`../../cumplidos_mf/DIAGNOSTICO_ARQUITECTURA.md`** — arquitectura objetivo del sistema: estructura de carpetas, capas, convenciones heredadas de los MFs hermanos, flujos operativos completos de los 6 trámites (carga de soportes, revisión supervisor, aprobación ordenador, reversión, histórico, parametrización de fechas), integración con `core_mf_cliente` y decisiones de diseño pendientes.
 
 - **`../../cumplidos_mf/MIGRATION_MAP.md`** — mapa detallado de la migración AngularJS → Angular: inventario de controladores/servicios legacy, tabla de rutas, endpoints efectivamente consumidos por backend con sus paths y formatos de respuesta, y patrones recurrentes a abstraer (cambio de estado, carga de documentos, paginación, PDF).
+
+## Decisiones de UI pendientes de revisión
+
+- **Columna Tipo (Inicial / Otro Sí) en bandeja supervisor**: fue eliminada para evitar desbordamiento de la tabla. Puede reincorporarse más adelante si el equipo decide que es necesario distinguir el tipo de contrato en esa vista.

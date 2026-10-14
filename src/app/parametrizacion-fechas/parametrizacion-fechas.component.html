@@ -45,8 +45,8 @@
             <span class="text-sm font-semibold text-gray-900">Período</span>
           </div>
           <p class="text-sm text-gray-500 leading-relaxed">
-            La carga queda restringida desde las 00:00 h de la fecha inicio hasta las 23:59 h de la
-            fecha fin. Fuera de ese rango, la carga no estará disponible.
+            La carga queda restringida desde la hora de inicio de la fecha inicio hasta la hora
+            fin de la fecha fin. Fuera de ese rango, la carga no estará disponible.
           </p>
         </div>
 
@@ -177,28 +177,54 @@
 
             </div>
 
-            <!-- Fechas (solo si opción = período) -->
+            <!-- Fechas y horas (solo si opción = período) -->
             @if (opcion() === 'periodo') {
               <div class="mb-5 grid grid-cols-2 gap-4">
-                <div>
-                  <label [class]="labelCls" for="fecha-inicio">Fecha inicio</label>
-                  <input
-                    id="fecha-inicio"
-                    type="date"
-                    [class]="inputCls"
-                    [value]="fechaInicio()"
-                    (change)="fechaInicio.set($any($event.target).value); formError.set(null); guardadoOk.set(false)"
-                  />
+                <!-- Inicio -->
+                <div class="space-y-2">
+                  <div>
+                    <label [class]="labelCls" for="fecha-inicio">Fecha inicio</label>
+                    <input
+                      id="fecha-inicio"
+                      type="date"
+                      [class]="inputCls"
+                      [value]="fechaInicio()"
+                      (change)="fechaInicio.set($any($event.target).value); formError.set(null); guardadoOk.set(false)"
+                    />
+                  </div>
+                  <div>
+                    <label [class]="labelCls" for="hora-inicio">Hora inicio</label>
+                    <input
+                      id="hora-inicio"
+                      type="time"
+                      [class]="inputCls"
+                      [value]="horaInicio()"
+                      (change)="horaInicio.set($any($event.target).value); formError.set(null); guardadoOk.set(false)"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label [class]="labelCls" for="fecha-fin">Fecha fin</label>
-                  <input
-                    id="fecha-fin"
-                    type="date"
-                    [class]="inputCls"
-                    [value]="fechaFin()"
-                    (change)="fechaFin.set($any($event.target).value); formError.set(null); guardadoOk.set(false)"
-                  />
+                <!-- Fin -->
+                <div class="space-y-2">
+                  <div>
+                    <label [class]="labelCls" for="fecha-fin">Fecha fin</label>
+                    <input
+                      id="fecha-fin"
+                      type="date"
+                      [class]="inputCls"
+                      [value]="fechaFin()"
+                      (change)="fechaFin.set($any($event.target).value); formError.set(null); guardadoOk.set(false)"
+                    />
+                  </div>
+                  <div>
+                    <label [class]="labelCls" for="hora-fin">Hora fin</label>
+                    <input
+                      id="hora-fin"
+                      type="time"
+                      [class]="inputCls"
+                      [value]="horaFin()"
+                      (change)="horaFin.set($any($event.target).value); formError.set(null); guardadoOk.set(false)"
+                    />
+                  </div>
                 </div>
               </div>
             }
@@ -281,10 +307,10 @@
                     }
                   </td>
                   <td class="px-3 py-3.5 text-center">
-                    <span class="tabular-nums text-sm text-gray-600">{{ fmtDate(f.fechaInicio) }}</span>
+                    <span class="tabular-nums text-sm text-gray-600">{{ fmtDateTime(f.fechaInicio, f.horaInicio) }}</span>
                   </td>
                   <td class="px-3 py-3.5 text-center">
-                    <span class="tabular-nums text-sm text-gray-600">{{ fmtDate(f.fechaFin) }}</span>
+                    <span class="tabular-nums text-sm text-gray-600">{{ fmtDateTime(f.fechaFin, f.horaFin) }}</span>
                   </td>
                   <td class="py-3.5 pr-5 text-center">
                     <button
@@ -323,7 +349,7 @@
                   </div>
                   @if (f.tipo === 'periodo') {
                     <p class="mt-1.5 text-xs text-gray-500">
-                      {{ fmtDate(f.fechaInicio) }} → {{ fmtDate(f.fechaFin) }}
+                      {{ fmtDateTime(f.fechaInicio, f.horaInicio) }} → {{ fmtDateTime(f.fechaFin, f.horaFin) }}
                     </p>
                   }
                 </div>

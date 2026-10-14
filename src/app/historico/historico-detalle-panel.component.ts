@@ -1,4 +1,4 @@
-import { Component, computed, inject, input, output, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, output, signal } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { EstadoChipComponent } from '../shared/components/estado-chip.component';
 import { crearDocumentoPlaceholderPDF } from '../shared/doc-placeholder-pdf';
@@ -182,7 +182,7 @@ export interface CumplidoHistoricoItem {
     <!-- ── Visor de documento (placeholder) ── -->
     @if (visorDocAbierto()) {
       <div
-        class="fixed inset-0 z-[70] flex flex-col"
+        class="fixed inset-y-0 left-0 right-0 z-[70] flex flex-col sm:right-[30rem]"
         role="dialog"
         aria-modal="true"
         aria-label="Vista previa del documento"
@@ -229,6 +229,14 @@ export class HistoricoDetallePanelComponent {
 
   readonly visorCerrarBtnCls =
     'inline-flex items-center justify-center rounded-md border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 transition-colors duration-150 hover:bg-gray-50 hover:border-gray-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#731514]';
+
+  constructor() {
+    effect(() => {
+      if (!this.abierto()) {
+        this.cerrarVisorDoc();
+      }
+    });
+  }
 
   verDocumento(nombre: string): void {
     const doc = crearDocumentoPlaceholderPDF(nombre);

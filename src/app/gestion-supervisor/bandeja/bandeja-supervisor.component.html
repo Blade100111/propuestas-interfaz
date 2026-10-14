@@ -133,6 +133,30 @@
 
     <!-- Tabla -->
     @else {
+
+      <!-- ── Seleccionar todos ── -->
+      @if (prsCount() > 0) {
+        <div class="mb-3 flex items-center gap-2.5 rounded-lg border border-gray-200 bg-white px-4 py-2.5 shadow-sm">
+          <input
+            type="checkbox"
+            id="select-all"
+            [class]="checkboxCls"
+            [checked]="allPrsSelected()"
+            (change)="toggleSelectAll()"
+            [attr.aria-label]="allPrsSelected() ? 'Deseleccionar todos' : 'Seleccionar todos los pendientes'"
+          />
+          <label for="select-all" class="cursor-pointer select-none text-sm text-gray-700">
+            Seleccionar todos los pendientes
+            <span class="ml-1 text-gray-400">({{ prsCount() }} en revision)</span>
+          </label>
+          @if (selectedCount() > 0 && !allPrsSelected()) {
+            <span class="ml-auto text-xs text-gray-400">
+              {{ selectedCount() }} de {{ prsCount() }} seleccionado{{ selectedCount() !== 1 ? 's' : '' }}
+            </span>
+          }
+        </div>
+      }
+
       <app-data-table
         [columns]="tableColumns"
         [rows]="cumplidosFiltrados()"
@@ -150,9 +174,27 @@
         <!-- ── Celdas desktop ── -->
         <ng-template appTableRow let-cumplido>
 
+          <!-- Checkbox -->
+          <td class="w-10 py-4 pl-5 pr-0 text-center">
+            @if (cumplido.estado === 'PRS') {
+              <input
+                type="checkbox"
+                [class]="checkboxCls"
+                [checked]="isSelected(cumplido.pagoMensualId)"
+                (change)="toggleSelect(cumplido.pagoMensualId)"
+                [attr.aria-label]="'Seleccionar ' + cumplido.nombreContratista"
+              />
+            }
+          </td>
+
           <!-- Dependencia -->
           <td class="hidden px-3 py-4 text-center lg:table-cell">
             <span class="text-sm text-gray-700">{{ cumplido.dependencia }}</span>
+          </td>
+
+          <!-- Rubro -->
+          <td class="hidden px-3 py-4 text-center lg:table-cell">
+            <span [class]="rubroBadgeClass(cumplido.rubro)">{{ cumplido.rubro }}</span>
           </td>
 
           <!-- Documento -->
@@ -176,19 +218,10 @@
           </td>
 
           <!-- Vigencia -->
-          <td class="hidden px-3 py-4 text-center lg:table-cell">
+          <td class="hidden px-3 py-4 text-center xl:table-cell">
             <span class="tabular-nums text-sm text-gray-600">{{ cumplido.vigencia }}</span>
           </td>
 
-          <!-- CDP -->
-          <td class="hidden px-3 py-4 text-center lg:table-cell">
-            <span class="tabular-nums text-sm text-gray-600">{{ cumplido.cdp }}</span>
-          </td>
-
-          <!-- Tipo Contrato -->
-          <td class="hidden px-3 py-4 text-center lg:table-cell">
-            <span [class]="tipoBadgeClass(cumplido)">{{ cumplido.tipoContrato }}</span>
-          </td>
 
           <!-- Mes -->
           <td class="px-3 py-4 text-center">
@@ -230,15 +263,28 @@
           <li class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
             <div class="p-4">
 
-              <!-- Card header: nombre + estado -->
-              <div class="flex items-start justify-between gap-3">
-                <div class="min-w-0">
-                  <p class="truncate text-sm font-bold text-gray-900">
-                    {{ cumplido.nombreContratista }}
-                  </p>
-                  <p class="mt-0.5 text-xs text-gray-500">{{ cumplido.documento }}</p>
+              <!-- Card header: checkbox + nombre + estado -->
+              <div class="flex items-start gap-3">
+                <div class="mt-0.5 w-4 shrink-0">
+                  @if (cumplido.estado === 'PRS') {
+                    <input
+                      type="checkbox"
+                      [class]="checkboxCls"
+                      [checked]="isSelected(cumplido.pagoMensualId)"
+                      (change)="toggleSelect(cumplido.pagoMensualId)"
+                      [attr.aria-label]="'Seleccionar ' + cumplido.nombreContratista"
+                    />
+                  }
                 </div>
-                <app-estado-chip [estado]="cumplido.estado" />
+                <div class="flex min-w-0 flex-1 items-start justify-between gap-3">
+                  <div class="min-w-0">
+                    <p class="truncate text-sm font-bold text-gray-900">
+                      {{ cumplido.nombreContratista }}
+                    </p>
+                    <p class="mt-0.5 text-xs text-gray-500">{{ cumplido.documento }}</p>
+                  </div>
+                  <app-estado-chip [estado]="cumplido.estado" />
+                </div>
               </div>
 
               <!-- Detalles -->
@@ -259,17 +305,24 @@
                     {{ cumplido.mesNombre }} {{ cumplido.ano }}
                   </dd>
                 </div>
-                <div class="col-span-2">
+                <div>
                   <dt class="text-xs font-semibold uppercase tracking-wide text-gray-400">
                     Dependencia
                   </dt>
                   <dd class="mt-0.5 text-xs text-gray-700">{{ cumplido.dependencia }}</dd>
                 </div>
+                <div>
+                  <dt class="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                    Rubro
+                  </dt>
+                  <dd class="mt-0.5">
+                    <span [class]="rubroBadgeClass(cumplido.rubro)">{{ cumplido.rubro }}</span>
+                  </dd>
+                </div>
               </dl>
 
-              <!-- Badge tipo + accion -->
-              <div class="mt-3 flex items-center justify-between gap-3">
-                <span [class]="tipoBadgeClass(cumplido)">{{ cumplido.tipoContrato }}</span>
+              <!-- Accion -->
+              <div class="mt-3 flex justify-end">
                 <button
                   [class]="accionBtnClass(cumplido.estado)"
                   (click)="abrirPanel(cumplido)"
@@ -290,6 +343,31 @@
         </ng-template>
 
       </app-data-table>
+
+      <!-- ── Aprobacion masiva ── -->
+      <div class="mt-4 flex items-center justify-end gap-4">
+        @if (selectedCount() > 0) {
+          <span class="text-sm text-gray-500">
+            {{ selectedCount() }} seleccionado{{ selectedCount() !== 1 ? 's' : '' }}
+          </span>
+        }
+        <button
+          type="button"
+          [class]="aprobarSelBtnCls"
+          [disabled]="selectedCount() === 0"
+          (click)="handleAprobarSeleccionados()"
+        >
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"
+               stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M13 4L6 11l-3-3"/>
+          </svg>
+          Aprobar seleccionados
+          @if (selectedCount() > 0) {
+            ({{ selectedCount() }})
+          }
+        </button>
+      </div>
     }
 
   </main>
