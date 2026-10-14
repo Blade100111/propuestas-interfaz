@@ -100,4 +100,4 @@ Los documentos de referencia de negocio y arquitectura están en `cumplidos_mf`,
 
 ## Decisiones de UI pendientes de revisión
 
-- **Columna Tipo (Inicial / Otro Sí) en bandeja supervisor**: fue eliminada para evitar desbordamiento de la tabla. Puede reincorporarse más adelante si el equipo decide que es necesario distinguir el tipo de contrato en esa vista.
+- **Columnas bandeja supervisor**: columna Año eliminada (el dato ya aparece en Vigencia y en las cards mobile). Columna Tipo (Inicial / Otro Sí) restaurada en `lg:table-cell`.
