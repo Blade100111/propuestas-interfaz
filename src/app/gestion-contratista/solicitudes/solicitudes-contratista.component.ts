@@ -123,6 +123,7 @@ export class SolicitudesContratistaComponent {
       key: 'ano',
       header: 'Año',
       sortable: true,
+      filterOptions: ANIOS.map((a) => ({ value: String(a), label: String(a) })),
       thClass: 'w-16 px-3 py-3 text-center',
       skHdr: 'h-2.5 w-20 animate-pulse rounded bg-gray-200',
       skCell: 'h-4 w-10 animate-pulse rounded bg-gray-100',
@@ -131,6 +132,7 @@ export class SolicitudesContratistaComponent {
       key: 'mes',
       header: 'Mes',
       sortable: true,
+      filterOptions: MESES.map((m) => ({ value: String(m.value), label: m.label })),
       thClass: 'w-28 px-3 py-3 text-center',
       skHdr: 'h-2.5 w-16 animate-pulse rounded bg-gray-200',
       skCell: 'h-4 w-16 animate-pulse rounded bg-gray-100',
@@ -147,6 +149,14 @@ export class SolicitudesContratistaComponent {
       key: 'estado',
       header: 'Estado',
       sortable: true,
+      filterOptions: [
+        { value: 'CD',  label: 'Creado'           },
+        { value: 'PRS', label: 'En revisión'       },
+        { value: 'AS',  label: 'Aprobado Sup.'     },
+        { value: 'AP',  label: 'Aprobado'          },
+        { value: 'RS',  label: 'Rechazado Sup.'    },
+        { value: 'RO',  label: 'Rechazado Ord.'    },
+      ],
       thClass: 'w-36 px-3 py-3 text-center',
       skHdr: 'h-2.5 flex-1 animate-pulse rounded bg-gray-200',
       skCell: 'h-5 w-24 animate-pulse rounded-full bg-gray-100',
@@ -181,6 +191,7 @@ export class SolicitudesContratistaComponent {
   readonly filtroActivo = signal<FiltroTab>('accion');
   readonly sortColumn = signal<SortCol | null>(null);
   readonly sortDirection = signal<'asc' | 'desc'>('asc');
+  readonly colFilterValues = signal<Record<string, string[]>>({});
   readonly formAnio = signal<number | null>(null);
   readonly formMes = signal<number | null>(null);
   readonly formError = signal<string | null>(null);
@@ -189,6 +200,16 @@ export class SolicitudesContratistaComponent {
     let list = this._solicitudes();
     if (this.filtroActivo() === 'accion') {
       list = list.filter((s) => s.estado === 'CD' || s.estado === 'RS');
+    }
+    const filters = this.colFilterValues();
+    if (filters['ano']?.length) {
+      list = list.filter((s) => filters['ano'].includes(String(s.ano)));
+    }
+    if (filters['mes']?.length) {
+      list = list.filter((s) => filters['mes'].includes(String(s.mes)));
+    }
+    if (filters['estado']?.length) {
+      list = list.filter((s) => filters['estado'].includes(s.estado));
     }
     const col = this.sortColumn();
     const dir = this.sortDirection() === 'asc' ? 1 : -1;
@@ -227,6 +248,10 @@ export class SolicitudesContratistaComponent {
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────
+  onColFilterChange(event: { column: string; values: string[] }): void {
+    this.colFilterValues.update((v) => ({ ...v, [event.column]: event.values }));
+  }
+
   sortBy(col: string): void {
     const sortCol = col as SortCol;
     if (this.sortColumn() === sortCol) {

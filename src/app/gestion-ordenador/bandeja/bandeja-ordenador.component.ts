@@ -20,7 +20,7 @@ import {
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog.component';
 import { ConfirmDialogService } from '../../shared/services/confirm-dialog.service';
 import { MAIN_WIDE, HDR_WIDE } from '../../shared/layout';
-import { SORT_PRIORITY } from '../../shared/estado.constants';
+import { ESTADO_CONFIG, SORT_PRIORITY } from '../../shared/estado.constants';
 
 interface CumplidoOrdenadorItem {
   pagoMensualId: number;
@@ -252,6 +252,7 @@ export class BandejaOrdenadorComponent {
   readonly sortColumn = signal<SortCol | null>(null);
   readonly sortDirection = signal<'asc' | 'desc'>('asc');
   readonly selectedItem = signal<CumplidoOrdenadorItem | null>(null);
+  readonly colFilterValues = signal<Record<string, string[]>>({});
   readonly selectedIds = signal<Set<number>>(new Set());
 
   // ── Static filter data ─────────────────────────────────────────────────────
@@ -283,6 +284,13 @@ export class BandejaOrdenadorComponent {
           c.dependencia.toLowerCase().includes(q),
       );
     }
+
+    const filters = this.colFilterValues();
+    if (filters['rubro']?.length) list = list.filter((c) => filters['rubro'].includes(c.rubro));
+    if (filters['vigencia']?.length) list = list.filter((c) => filters['vigencia'].includes(String(c.vigencia)));
+    if (filters['mes']?.length) list = list.filter((c) => filters['mes'].includes(String(c.mes)));
+    if (filters['ano']?.length) list = list.filter((c) => filters['ano'].includes(String(c.ano)));
+    if (filters['estado']?.length) list = list.filter((c) => filters['estado'].includes(c.estado));
 
     const col = this.sortColumn();
     const dir = this.sortDirection() === 'asc' ? 1 : -1;
@@ -365,6 +373,7 @@ export class BandejaOrdenadorComponent {
       key: 'rubro',
       header: 'Rubro',
       sortable: true,
+      filterOptions: [...new Set(MOCK_CUMPLIDOS.map((c) => c.rubro))].sort().map((r) => ({ value: r, label: r === 'INVERSION' ? 'Inversi\u00f3n' : 'Funcionamiento' })),
       thClass: 'hidden px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 lg:table-cell',
       skHdr: 'hidden h-2.5 w-24 animate-pulse rounded bg-gray-200 lg:block',
       skCell: 'hidden h-5 w-28 animate-pulse rounded-full bg-gray-100 lg:block',
@@ -397,6 +406,7 @@ export class BandejaOrdenadorComponent {
       key: 'vigencia',
       header: 'Vigencia',
       sortable: true,
+      filterOptions: [...new Set(MOCK_CUMPLIDOS.map((c) => c.vigencia))].sort().map((a) => ({ value: String(a), label: String(a) })),
       thClass: 'hidden px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 lg:table-cell',
       skHdr: 'hidden h-2.5 w-14 animate-pulse rounded bg-gray-200 lg:block',
       skCell: 'hidden h-4 w-14 animate-pulse rounded bg-gray-100 lg:block',
@@ -405,6 +415,7 @@ export class BandejaOrdenadorComponent {
       key: 'mes',
       header: 'Mes',
       sortable: true,
+      filterOptions: [...new Set(MOCK_CUMPLIDOS.map((c) => c.mes))].sort((a, b) => a - b).map((m) => ({ value: String(m), label: ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'][m - 1] })),
       thClass: 'px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500',
       skHdr: 'h-2.5 w-10 animate-pulse rounded bg-gray-200',
       skCell: 'h-4 w-12 animate-pulse rounded bg-gray-100',
@@ -413,6 +424,7 @@ export class BandejaOrdenadorComponent {
       key: 'ano',
       header: 'A\u00f1o',
       sortable: true,
+      filterOptions: [...new Set(MOCK_CUMPLIDOS.map((c) => c.ano))].sort().map((a) => ({ value: String(a), label: String(a) })),
       thClass: 'px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500',
       skHdr: 'h-2.5 w-10 animate-pulse rounded bg-gray-200',
       skCell: 'h-4 w-12 animate-pulse rounded bg-gray-100',
@@ -421,6 +433,7 @@ export class BandejaOrdenadorComponent {
       key: 'estado',
       header: 'Estado',
       sortable: true,
+      filterOptions: [...new Set(MOCK_CUMPLIDOS.map((c) => c.estado))].map((e) => ({ value: e, label: ESTADO_CONFIG[e]?.label ?? e })),
       thClass: 'px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500',
       skHdr: 'h-2.5 w-16 animate-pulse rounded bg-gray-200',
       skCell: 'h-5 w-24 animate-pulse rounded-full bg-gray-100',
@@ -507,7 +520,7 @@ export class BandejaOrdenadorComponent {
     });
   }
 
-  // ── Sorting ────────────────────────────────────────────────────────────────
+  // ── Sorting & Filtering ────────────────────────────────────────────────────
   sortBy(col: string): void {
     const sortCol = col as SortCol;
     if (this.sortColumn() === sortCol) {
@@ -516,6 +529,10 @@ export class BandejaOrdenadorComponent {
       this.sortColumn.set(sortCol);
       this.sortDirection.set('asc');
     }
+  }
+
+  onColFilterChange(event: { column: string; values: string[] }): void {
+    this.colFilterValues.update((v) => ({ ...v, [event.column]: event.values }));
   }
 
   // ── Panel ──────────────────────────────────────────────────────────────────

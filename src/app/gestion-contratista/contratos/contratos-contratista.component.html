@@ -67,7 +67,9 @@
         [footerText]="footerText()"
         [mobileFooterText]="mobileFooterText()"
         [rowClassFn]="contratoRowClass"
+        [filterValues]="colFilterValues()"
         (sortChange)="sortBy($event)"
+        (filterChange)="onColFilterChange($event)"
       >
         <!-- ── Celdas desktop ── -->
         <ng-template appTableRow let-contrato>

@@ -269,8 +269,8 @@
           <table class="w-full text-sm" aria-label="Parametrizaciones guardadas">
             <thead>
               <tr class="border-b border-gray-100 bg-gray-50/60">
-                <th class="py-3 pl-5 pr-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500 w-16">Año</th>
-                <th class="px-3 py-3 text-left   text-xs font-semibold uppercase tracking-wider text-gray-500 w-32">Mes</th>
+                <th class="py-3 px-4 text-center text-xs font-semibold uppercase tracking-wider text-gray-500 w-20">Año</th>
+                <th class="px-3 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500 w-32">Mes</th>
                 <th class="px-3 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500 w-28">Tipo</th>
                 <th class="px-3 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500 w-32">Fecha inicio</th>
                 <th class="px-3 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500 w-32">Fecha fin</th>
@@ -280,10 +280,10 @@
             <tbody class="divide-y divide-gray-100">
               @for (f of fechasOrdenadas(); track f.id) {
                 <tr class="transition-colors duration-100 hover:bg-gray-50/60">
-                  <td class="py-3.5 pl-5 pr-3 text-center">
+                  <td class="py-3.5 px-4 text-center">
                     <span class="tabular-nums text-sm font-semibold text-gray-900">{{ f.anio }}</span>
                   </td>
-                  <td class="px-3 py-3.5 text-left">
+                  <td class="px-3 py-3.5 text-center">
                     <span class="text-sm text-gray-700">{{ f.mesNombre }}</span>
                   </td>
                   <td class="px-3 py-3.5 text-center">

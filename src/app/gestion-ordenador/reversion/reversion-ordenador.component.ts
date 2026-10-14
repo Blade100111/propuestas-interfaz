@@ -208,6 +208,7 @@ export class ReversionOrdenadorComponent {
   readonly sortColumn = signal<SortCol | null>(null);
   readonly sortDirection = signal<'asc' | 'desc'>('asc');
   readonly selectedItem = signal<CumplidoReversionItem | null>(null);
+  readonly colFilterValues = signal<Record<string, string[]>>({});
 
   // ── Computed ───────────────────────────────────────────────────────────────
   readonly cumplidosFiltrados = computed(() => {
@@ -223,6 +224,13 @@ export class ReversionOrdenadorComponent {
           c.dependencia.toLowerCase().includes(q),
       );
     }
+
+    const filters = this.colFilterValues();
+    if (filters['dependencia']?.length) list = list.filter((c) => filters['dependencia'].includes(c.dependencia));
+    if (filters['rubro']?.length) list = list.filter((c) => filters['rubro'].includes(c.rubro));
+    if (filters['vigencia']?.length) list = list.filter((c) => filters['vigencia'].includes(String(c.vigencia)));
+    if (filters['mes']?.length) list = list.filter((c) => filters['mes'].includes(String(c.mes)));
+    if (filters['ano']?.length) list = list.filter((c) => filters['ano'].includes(String(c.ano)));
 
     const col = this.sortColumn();
     const dir = this.sortDirection() === 'asc' ? 1 : -1;
@@ -271,6 +279,7 @@ export class ReversionOrdenadorComponent {
       key: 'dependencia',
       header: 'Dependencia',
       sortable: true,
+      filterOptions: [...new Set(MOCK_CUMPLIDOS.map((c) => c.dependencia))].sort().map((d) => ({ value: d, label: d })),
       thClass: 'hidden px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 lg:table-cell',
       skHdr: 'hidden h-2.5 flex-1 animate-pulse rounded bg-gray-200 lg:block',
       skCell: 'hidden h-4 w-40 animate-pulse rounded bg-gray-100 lg:block',
@@ -279,6 +288,10 @@ export class ReversionOrdenadorComponent {
       key: 'rubro',
       header: 'Rubro',
       sortable: false,
+      filterOptions: [
+        { value: 'INVERSION', label: 'Inversión' },
+        { value: 'FUNCIONAMIENTO', label: 'Funcionamiento' },
+      ],
       thClass: 'hidden px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 lg:table-cell',
       skHdr: 'hidden h-2.5 w-24 animate-pulse rounded bg-gray-200 lg:block',
       skCell: 'hidden h-5 w-28 animate-pulse rounded-full bg-gray-100 lg:block',
@@ -311,6 +324,7 @@ export class ReversionOrdenadorComponent {
       key: 'vigencia',
       header: 'Vigencia',
       sortable: true,
+      filterOptions: [...new Set(MOCK_CUMPLIDOS.map((c) => c.vigencia))].sort().map((v) => ({ value: String(v), label: String(v) })),
       thClass: 'hidden px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 lg:table-cell',
       skHdr: 'hidden h-2.5 w-14 animate-pulse rounded bg-gray-200 lg:block',
       skCell: 'hidden h-4 w-14 animate-pulse rounded bg-gray-100 lg:block',
@@ -319,6 +333,7 @@ export class ReversionOrdenadorComponent {
       key: 'mes',
       header: 'Mes',
       sortable: true,
+      filterOptions: [...new Set(MOCK_CUMPLIDOS.map((c) => c.mes))].sort((a, b) => a - b).map((m) => ({ value: String(m), label: ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'][m - 1] })),
       thClass: 'px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500',
       skHdr: 'h-2.5 w-10 animate-pulse rounded bg-gray-200',
       skCell: 'h-4 w-12 animate-pulse rounded bg-gray-100',
@@ -335,6 +350,7 @@ export class ReversionOrdenadorComponent {
       key: 'ano',
       header: 'A\u00f1o',
       sortable: true,
+      filterOptions: [...new Set(MOCK_CUMPLIDOS.map((c) => c.ano))].sort().map((a) => ({ value: String(a), label: String(a) })),
       thClass: 'px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500',
       skHdr: 'h-2.5 w-10 animate-pulse rounded bg-gray-200',
       skCell: 'h-4 w-12 animate-pulse rounded bg-gray-100',
@@ -377,6 +393,10 @@ export class ReversionOrdenadorComponent {
       this.sortColumn.set(sortCol);
       this.sortDirection.set('asc');
     }
+  }
+
+  onColFilterChange(event: { column: string; values: string[] }): void {
+    this.colFilterValues.update((prev) => ({ ...prev, [event.column]: event.values }));
   }
 
   // ── Panel ──────────────────────────────────────────────────────────────────

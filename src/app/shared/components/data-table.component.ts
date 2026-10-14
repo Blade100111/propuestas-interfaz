@@ -11,6 +11,7 @@ import {
   untracked,
 } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
+import { ColumnFilterComponent } from './column-filter.component';
 
 // ── Column definition ────────────────────────────────────────────────────────
 
@@ -29,6 +30,8 @@ export interface TableColumn {
   header: string;
   /** Si true, el encabezado se renderiza como botón de ordenación. */
   sortable?: boolean;
+  /** Opciones de filtro de columna. Si se define, aparece un botón embudo en el encabezado. */
+  filterOptions?: { value: string; label: string }[];
   /** Clase(s) Tailwind completa(s) para el elemento <th>. */
   thClass: string;
   /** Clase(s) completa(s) para el div del skeleton del encabezado. */
@@ -102,7 +105,7 @@ export class TableCardDirective {
 @Component({
   selector: 'app-data-table',
   standalone: true,
-  imports: [NgTemplateOutlet],
+  imports: [NgTemplateOutlet, ColumnFilterComponent],
   template: `
     <!-- ── Skeleton (todos los viewports mientras loading=true) ── -->
     @if (loading()) {
@@ -141,16 +144,45 @@ export class TableCardDirective {
                 @for (col of columns(); track col.key) {
                   <th scope="col" [class]="col.thClass">
                     @if (col.sortable) {
-                      <button
-                        [class]="sortBtnCls"
-                        (click)="sortChange.emit(col.key)"
-                        type="button"
-                      >
-                        {{ col.header }}
-                        <span aria-hidden="true">{{ sortIcon(col.key) }}</span>
-                      </button>
+                      @if (col.filterOptions) {
+                        <div class="flex w-full items-center gap-1">
+                          <button
+                            [class]="sortBtnWithFilterCls"
+                            (click)="sortChange.emit(col.key)"
+                            type="button"
+                          >
+                            {{ col.header }}
+                            <span aria-hidden="true">{{ sortIcon(col.key) }}</span>
+                          </button>
+                          <app-column-filter
+                            [options]="col.filterOptions"
+                            [value]="filterValues()[col.key] ?? []"
+                            (valueChange)="onFilterChange(col.key, $event)"
+                          />
+                        </div>
+                      } @else {
+                        <button
+                          [class]="sortBtnCls"
+                          (click)="sortChange.emit(col.key)"
+                          type="button"
+                        >
+                          {{ col.header }}
+                          <span aria-hidden="true">{{ sortIcon(col.key) }}</span>
+                        </button>
+                      }
                     } @else {
-                      {{ col.header }}
+                      @if (col.filterOptions) {
+                        <div class="inline-flex items-center gap-1">
+                          <span>{{ col.header }}</span>
+                          <app-column-filter
+                            [options]="col.filterOptions"
+                            [value]="filterValues()[col.key] ?? []"
+                            (valueChange)="onFilterChange(col.key, $event)"
+                          />
+                        </div>
+                      } @else {
+                        {{ col.header }}
+                      }
                     }
                   </th>
                 }
@@ -286,6 +318,10 @@ export class DataTableComponent {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   readonly rowClassFn = input<((row: any) => string) | null>(null);
   readonly sortChange = output<string>();
+  /** Valores activos de filtros de columna: { [columnKey]: string[] }. Vacío = sin filtro. */
+  readonly filterValues = input<Record<string, string[]>>({});
+  /** Emite cuando el usuario cambia el filtro de una columna. */
+  readonly filterChange = output<{ column: string; values: string[] }>();
 
   @ContentChild(TableRowDirective) rowTpl?: TableRowDirective;
   @ContentChild(TableCardDirective) cardTpl?: TableCardDirective;
@@ -309,6 +345,9 @@ export class DataTableComponent {
   readonly defaultRowCls = 'transition-colors duration-100 hover:bg-[#731514]/5';
   readonly sortBtnCls =
     'flex w-full items-center justify-center gap-1 text-xs font-semibold uppercase tracking-wider text-gray-500 hover:text-gray-900 transition-colors duration-150 focus-visible:outline-none';
+  /** Variante del botón de sort cuando hay un filtro de columna al lado (usa flex-1 en vez de w-full). */
+  readonly sortBtnWithFilterCls =
+    'flex flex-1 items-center justify-center gap-1 text-xs font-semibold uppercase tracking-wider text-gray-500 hover:text-gray-900 transition-colors duration-150 focus-visible:outline-none';
   readonly pageSizeSelectCls =
     'rounded border border-gray-200 bg-white px-2 py-0.5 text-xs text-gray-600 shadow-sm transition-colors duration-150 focus:border-[#731514] focus:outline-none focus:ring-1 focus:ring-[#731514]/30';
   readonly pageNavBtnCls =
@@ -328,6 +367,10 @@ export class DataTableComponent {
   rowCls(row: any): string {
     const fn = this.rowClassFn();
     return fn ? fn(row) : this.defaultRowCls;
+  }
+
+  onFilterChange(column: string, values: string[]): void {
+    this.filterChange.emit({ column, values });
   }
 
   sortIcon(col: string): string {

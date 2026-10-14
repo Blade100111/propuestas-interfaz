@@ -113,7 +113,9 @@
         [sortColumn]="sortColumn()"
         [sortDirection]="sortDirection()"
         [footerText]="footerText()"
+        [filterValues]="colFilterValues()"
         (sortChange)="sortBy($event)"
+        (filterChange)="onColFilterChange($event)"
       >
 
         <!-- ── Celdas desktop ── -->

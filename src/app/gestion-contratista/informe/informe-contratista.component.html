@@ -178,10 +178,12 @@
     <!-- ════════════════════════════════════════════════════════════════════ -->
     @if (esEditable()) {
 
-      <!-- "Última vez guardado" — static visual indicator, no behavior -->
-      <p class="text-xs text-gray-400 text-right mb-4" aria-hidden="true">
-        Guardado: 26 ago 2025, 10:32
-      </p>
+      <!-- Indicador de guardado -->
+      @if (guardadoOk()) {
+        <p class="text-xs text-green-600 text-right mb-4" role="status">Guardado correctamente</p>
+      } @else {
+        <p class="text-xs text-gray-400 text-right mb-4" aria-hidden="true">Sin cambios guardados</p>
+      }
 
       <!-- Form header: Proceso + date range — 3 columns at md+ -->
       <div class="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,12rem)_minmax(0,12rem)] gap-4 mb-6">
@@ -682,8 +684,25 @@
       </div>
     }
 
-    <!-- ── "Generar certificado" — descarga el PDF del informe ── -->
-    <div class="border-t border-gray-100 pt-5 pb-6">
+    <!-- ── Footer: Guardar + Generar certificado ── -->
+    <div class="border-t border-gray-100 pt-5 pb-6 flex items-center justify-between gap-4">
+      @if (esEditable()) {
+        <button
+          type="button"
+          [class]="ghostBtnCls"
+          (click)="guardarInforme()"
+          aria-label="Guardar el borrador del informe"
+        >
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M13 2H5a1 1 0 00-1 1v10a1 1 0 001 1h8a1 1 0 001-1V5l-3-3z"/>
+            <path d="M9 2v3a1 1 0 01-1 1H5"/>
+            <rect x="5" y="9" width="3.5" height="4"/>
+          </svg>
+          Guardar
+        </button>
+      } @else {
+        <span></span>
+      }
       <button
         type="button"
         [class]="primaryBtnCls"

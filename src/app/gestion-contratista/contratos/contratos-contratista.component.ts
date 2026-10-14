@@ -151,6 +151,7 @@ export class ContratosContratistaComponent {
       key: 'vigencia',
       header: 'Vigencia',
       sortable: true,
+      filterOptions: [{ value: '2025', label: '2025' }],
       thClass: 'w-20 px-3 py-3 text-center',
       skHdr: 'h-2.5 w-14 animate-pulse rounded bg-gray-200',
       skCell: 'h-4 w-12 animate-pulse rounded bg-gray-100',
@@ -159,6 +160,10 @@ export class ContratosContratistaComponent {
       key: 'tipo',
       header: 'Tipo',
       sortable: true,
+      filterOptions: [
+        { value: 'false', label: 'Inicial' },
+        { value: 'true', label: 'Otro Sí' },
+      ],
       thClass: 'w-36 px-3 py-3 text-center',
       skHdr: 'h-2.5 w-20 animate-pulse rounded bg-gray-200',
       skCell: 'h-5 w-20 animate-pulse rounded-full bg-gray-100',
@@ -203,12 +208,20 @@ export class ContratosContratistaComponent {
   readonly busqueda = signal('');
   readonly sortColumn = signal<SortCol | null>(null);
   readonly sortDirection = signal<'asc' | 'desc'>('asc');
+  readonly colFilterValues = signal<Record<string, string[]>>({});
 
   readonly contratosFiltrados = computed(() => {
     const q = this.busqueda().toLowerCase().trim();
     let list = this.contratos();
     if (q) {
       list = list.filter((c) => c.numeroContratoSuscrito.toLowerCase().includes(q));
+    }
+    const filters = this.colFilterValues();
+    if (filters['vigencia']?.length) {
+      list = list.filter((c) => filters['vigencia'].includes(String(c.vigencia)));
+    }
+    if (filters['tipo']?.length) {
+      list = list.filter((c) => filters['tipo'].includes(String(c.esOtroSi)));
     }
     const col = this.sortColumn();
     const dir = this.sortDirection() === 'asc' ? 1 : -1;
@@ -252,6 +265,10 @@ export class ContratosContratistaComponent {
   // ── Helpers ───────────────────────────────────────────────────────────────
   tipoBadgeClass(contrato: ContratoItem): string {
     return contrato.esOtroSi ? this.tipoBadgeOtroSiCls : this.tipoBadgeInicialCls;
+  }
+
+  onColFilterChange(event: { column: string; values: string[] }): void {
+    this.colFilterValues.update((v) => ({ ...v, [event.column]: event.values }));
   }
 
   sortBy(col: string): void {
