@@ -298,12 +298,12 @@ export function crearCertificadoPDF(
       // Anchos por contenido real (FOLIO horizontal, 916pt útiles):
       //   No.=28 | Act.específicas=*(~373) | %avance=70 | Act.realizadas=195 | Producto=130 | Evidencias=120
       // %avance=70 (igual al legacy): "PORCENTAJE" cabe en 1 línea, "DE AVANCE" en la 2ª.
-      // Evidencias=120 (~26 chars/línea): texto plano largo cabe en ~4 líneas.
+      // Evidencias=175 (~38 chars/línea): texto plano largo cabe en ~3 líneas.
       {
         style: 'tableContractInfo',
         table: {
           dontBreakRows: true,
-          widths: [28, '*', 70, 195, 130, 120],
+          widths: [28, '*', 70, 165, 110, 175],
           body: construirTablaActividades(actividades),
         },
       },

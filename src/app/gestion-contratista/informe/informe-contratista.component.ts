@@ -399,6 +399,7 @@ export class InformeContratistaComponent {
   readonly cargando = signal(true);
   readonly contrato = signal<InformeData | null>(null);
   readonly actividades = signal<ActividadItem[]>([]);
+  readonly guardadoOk = signal(false);
 
   // Issue 7: visor previo antes de descargar (patrón del legacy: getDataUrl + iframe)
   readonly visorAbierto = signal(false);
@@ -720,6 +721,10 @@ export class InformeContratistaComponent {
   cerrarVisor(): void {
     this.visorAbierto.set(false);
     this.pdfDataUrl.set('');
+  }
+
+  guardarInforme(): void {
+    this.guardadoOk.set(true);
   }
 
   // ── Navigation ────────────────────────────────────────────────────────────

@@ -65,6 +65,31 @@ rm -rf .angular/cache && npm start
 
 **En `app.routes.ts`**: no dejar comentarios `// Stub — ...` una vez que el componente real fue construido. Son señal de alerta falsa que confunde en sesiones futuras.
 
+## Integración con Root y Core (demo)
+
+El worktree `~/go/src/github.com/udistrital/propuestas_interfaz/propuestas-interfaz-spa`
+contiene la rama `demo-propuestas`, convertida a MF single-spa (builder webpack,
+puerto 4204), con su propio `node_modules`. La carpeta de `main` usa esbuild y corre
+standalone; los dos entornos no se mezclan.
+
+**Para levantar el proyecto con el Root:**
+- Terminal 1 — en `~/go/src/github.com/udistrital/cumplidos_root_mf`: `npm start` (puerto 4200)
+- Terminal 2 — en `propuestas-interfaz-spa`: `npm start` (puerto 4204)
+- Abrir `http://localhost:4200` con VPN activa. El Core se carga desde el CDN de pruebas
+  (`pruebascoreclientes.portaloas.udistrital.edu.co`); no se levanta local.
+
+Si el usuario pide levantar el proyecto "con el Root", se hace desde `propuestas-interfaz-spa`,
+no desde la carpeta de `main`.
+
+Los headers de página están quitados en `demo-propuestas` a propósito; no restaurarlos
+sin permiso explícito del usuario.
+
+Los cambios de interfaz hechos en `main` no aparecen en la demo hasta llevarlos a
+`demo-propuestas`; preguntar antes de mezclar ramas.
+
+Tras registrar o cambiar datos del menú en la herramienta de configuración, cerrar
+sesión o borrar las claves `menu` y `menu_context` de `localStorage` antes de recargar.
+
 ## Documentos relacionados
 
 Los documentos de referencia de negocio y arquitectura están en `cumplidos_mf`, el proyecto de producción al que este sandbox apunta. Consultar siempre que se necesite contexto sobre estados, roles, endpoints, flujos de trámite o decisiones de diseño ya resueltas:

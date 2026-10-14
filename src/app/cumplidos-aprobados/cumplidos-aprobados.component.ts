@@ -283,6 +283,7 @@ export class CumplidosAprobadosComponent {
   readonly sortColumn = signal<SortCol | null>(null);
   readonly sortDirection = signal<'asc' | 'desc'>('asc');
   readonly selectedItem = signal<CumplidoAprobadoItem | null>(null);
+  readonly colFilterValues = signal<Record<string, string[]>>({});
 
   // ── Panel config ───────────────────────────────────────────────────────────
   readonly panelActionableEstados: string[] = [];
@@ -298,7 +299,8 @@ export class CumplidosAprobadosComponent {
       this.busqueda() !== '' ||
       this.filtroVigencias().length > 0 ||
       this.filtroAnios().length > 0 ||
-      this.filtroMeses().length > 0,
+      this.filtroMeses().length > 0 ||
+      Object.values(this.colFilterValues()).some((v) => v.length > 0),
   );
 
   readonly cumplidosFiltrados = computed(() => {
@@ -323,6 +325,10 @@ export class CumplidosAprobadosComponent {
     if (this.filtroMeses().length > 0) {
       list = list.filter((c) => this.filtroMeses().includes(String(c.mes)));
     }
+
+    const filters = this.colFilterValues();
+    if (filters['dependencia']?.length) list = list.filter((c) => filters['dependencia'].includes(c.dependencia));
+    if (filters['rubro']?.length) list = list.filter((c) => filters['rubro'].includes(c.rubro));
 
     const col = this.sortColumn();
     const dir = this.sortDirection() === 'asc' ? 1 : -1;
@@ -370,6 +376,7 @@ export class CumplidosAprobadosComponent {
       key: 'dependencia',
       header: 'Dependencia',
       sortable: true,
+      filterOptions: [...new Set(MOCK_CUMPLIDOS.map((c) => c.dependencia))].sort().map((d) => ({ value: d, label: d })),
       thClass: 'hidden px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 lg:table-cell',
       skHdr: 'hidden h-2.5 flex-1 animate-pulse rounded bg-gray-200 lg:block',
       skCell: 'hidden h-4 w-40 animate-pulse rounded bg-gray-100 lg:block',
@@ -378,6 +385,7 @@ export class CumplidosAprobadosComponent {
       key: 'rubro',
       header: 'Rubro',
       sortable: false,
+      filterOptions: [...new Set(MOCK_CUMPLIDOS.map((c) => c.rubro))].sort().map((r) => ({ value: r, label: r === 'INVERSION' ? 'Inversi\u00f3n' : 'Funcionamiento' })),
       thClass: 'hidden px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 lg:table-cell',
       skHdr: 'hidden h-2.5 w-24 animate-pulse rounded bg-gray-200 lg:block',
       skCell: 'hidden h-5 w-28 animate-pulse rounded-full bg-gray-100 lg:block',
@@ -464,7 +472,7 @@ export class CumplidosAprobadosComponent {
     return rubro === 'INVERSION' ? 'Inversi\u00f3n' : 'Funcionamiento';
   }
 
-  // ── Sorting ────────────────────────────────────────────────────────────────
+  // ── Sorting & Filtering ────────────────────────────────────────────────────
   sortBy(col: string): void {
     const sortCol = col as SortCol;
     if (this.sortColumn() === sortCol) {
@@ -484,12 +492,17 @@ export class CumplidosAprobadosComponent {
     this.selectedItem.set(null);
   }
 
+  onColFilterChange(event: { column: string; values: string[] }): void {
+    this.colFilterValues.update((v) => ({ ...v, [event.column]: event.values }));
+  }
+
   // ── Filters ────────────────────────────────────────────────────────────────
   limpiarFiltros(): void {
     this.busqueda.set('');
     this.filtroVigencias.set([]);
     this.filtroAnios.set([]);
     this.filtroMeses.set([]);
+    this.colFilterValues.set({});
   }
 
   constructor() {
