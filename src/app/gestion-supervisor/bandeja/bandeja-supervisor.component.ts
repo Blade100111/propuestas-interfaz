@@ -55,7 +55,6 @@ type SortCol =
   | 'contrato'
   | 'vigencia'
   | 'mes'
-  | 'ano'
   | 'estado';
 
 const MES_NOMBRES_CERT = [
@@ -377,7 +376,6 @@ export class BandejaSupervisorComponent {
     if (filters['tipo']?.length) list = list.filter((c) => filters['tipo'].includes(String(c.esOtroSi)));
     if (filters['vigencia']?.length) list = list.filter((c) => filters['vigencia'].includes(String(c.vigencia)));
     if (filters['mes']?.length) list = list.filter((c) => filters['mes'].includes(String(c.mes)));
-    if (filters['ano']?.length) list = list.filter((c) => filters['ano'].includes(String(c.ano)));
     if (filters['estado']?.length) list = list.filter((c) => filters['estado'].includes(c.estado));
 
     const col = this.sortColumn();
@@ -393,8 +391,6 @@ export class BandejaSupervisorComponent {
       list = [...list].sort((a, b) => (a.vigencia - b.vigencia) * dir);
     } else if (col === 'mes') {
       list = [...list].sort((a, b) => (a.mes - b.mes) * dir);
-    } else if (col === 'ano') {
-      list = [...list].sort((a, b) => (a.ano - b.ano) * dir);
     } else if (col === 'estado') {
       list = [...list].sort(
         (a, b) => (SORT_PRIORITY[a.estado] - SORT_PRIORITY[b.estado]) * dir,
@@ -491,6 +487,18 @@ export class BandejaSupervisorComponent {
       skCell: 'h-4 w-20 animate-pulse rounded bg-gray-100',
     },
     {
+      key: 'tipo',
+      header: 'Tipo',
+      sortable: false,
+      filterOptions: [
+        { value: 'false', label: 'Inicial' },
+        { value: 'true',  label: 'Otro S\u00ed' },
+      ],
+      thClass: 'hidden px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 lg:table-cell',
+      skHdr: 'hidden h-2.5 w-16 animate-pulse rounded bg-gray-200 lg:block',
+      skCell: 'hidden h-5 w-16 animate-pulse rounded-full bg-gray-100 lg:block',
+    },
+    {
       key: 'vigencia',
       header: 'Vigencia',
       sortable: true,
@@ -507,15 +515,6 @@ export class BandejaSupervisorComponent {
         value: String(m),
         label: MES_NOMBRES_CERT[m - 1],
       })),
-      thClass: 'px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500',
-      skHdr: 'h-2.5 w-10 animate-pulse rounded bg-gray-200',
-      skCell: 'h-4 w-12 animate-pulse rounded bg-gray-100',
-    },
-    {
-      key: 'ano',
-      header: 'A\u00f1o',
-      sortable: true,
-      filterOptions: [...new Set(MOCK_CUMPLIDOS.map((c) => c.ano))].sort().map((a) => ({ value: String(a), label: String(a) })),
       thClass: 'px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500',
       skHdr: 'h-2.5 w-10 animate-pulse rounded bg-gray-200',
       skCell: 'h-4 w-12 animate-pulse rounded bg-gray-100',
