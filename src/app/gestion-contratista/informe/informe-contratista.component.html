@@ -157,12 +157,18 @@
     <!-- ════════════════════════════════════════════════════════════════════ -->
     @if (esEditable()) {
 
-      <!-- Indicador de guardado -->
-      @if (guardadoOk()) {
-        <p class="text-xs text-green-600 text-right mb-4" role="status">Guardado correctamente</p>
-      } @else {
-        <p class="text-xs text-gray-400 text-right mb-4" aria-hidden="true">Sin cambios guardados</p>
-      }
+      <!-- Indicador de guardado + info de auto-guardado -->
+      <div class="mb-4 flex items-center justify-end gap-2 text-xs text-gray-400">
+        <span>Guardado automático cada 7 min</span>
+        @if (guardadoOk()) {
+          <span class="flex items-center gap-1 text-green-600" role="status">
+            <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M10 3L5 8.5 2 5.5"/>
+            </svg>
+            Guardado
+          </span>
+        }
+      </div>
 
       <!-- Form header: Proceso + date range — 3 columns at md+ -->
       <div class="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,12rem)_minmax(0,12rem)] gap-4 mb-6">
@@ -663,8 +669,8 @@
       </div>
     }
 
-    <!-- ── Footer: Guardar + Generar certificado ── -->
-    <div class="border-t border-gray-100 pt-5 pb-6 flex items-center justify-between gap-4">
+    <!-- ── Footer: Guardar (editable) + Generar certificado ── -->
+    <div class="border-t border-gray-100 pt-5 pb-6 flex items-center justify-end gap-3">
       @if (esEditable()) {
         <button
           type="button"
@@ -679,15 +685,13 @@
           </svg>
           Guardar
         </button>
-      } @else {
-        <span></span>
       }
       <button
         type="button"
         [class]="primaryBtnCls"
         (click)="generarCertificado()"
         [disabled]="cargando() || !contrato() || (esEditable() && !formularioValido())"
-        aria-label="Generar y descargar el certificado de cumplido en PDF"
+        aria-label="Generar certificado de cumplido en PDF"
       >
         <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M9 2H4a1 1 0 00-1 1v10a1 1 0 001 1h8a1 1 0 001-1V6L9 2z"/>
@@ -716,14 +720,13 @@
           <button
             type="button"
             [class]="primaryBtnCls"
-            (click)="descargarPDF()"
-            aria-label="Guardar y descargar el certificado como PDF"
+            (click)="finalizarCertificado()"
+            aria-label="Guardar certificado y volver a soportes"
           >
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M8 2v8M5 7l3 3 3-3"/>
-              <path d="M3 13h10"/>
+              <path d="M13 4L6 11l-3-3"/>
             </svg>
-            Guardar
+            Guardar certificado
           </button>
           <button
             type="button"

@@ -230,7 +230,7 @@
               #fileInput
               type="file"
               accept="application/pdf,.pdf"
-              multiple
+              [attr.multiple]="itemSeleccionado() === 'otras' ? true : null"
               class="sr-only"
               (change)="onFileSelect($event)"
               aria-hidden="true"
@@ -266,7 +266,11 @@
                 <p class="mt-1 text-xs text-gray-400">
                   Solo PDF
                   <span class="text-gray-300 mx-1">·</span>
-                  Máx. 1 MB por archivo
+                  Máx. 1 MB
+                  @if (itemSeleccionado() !== 'otras') {
+                    <span class="text-gray-300 mx-1">·</span>
+                    1 archivo máx.
+                  }
                 </p>
               </div>
             </div>
