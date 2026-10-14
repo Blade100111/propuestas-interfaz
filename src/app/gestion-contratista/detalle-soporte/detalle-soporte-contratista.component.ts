@@ -293,8 +293,12 @@ export class DetalleSoporteContratistaComponent {
   }
 
   private processFiles(files: File[]): void {
-    const staged = [...this.archivosStaged()];
-    for (const file of files) {
+    // "Otras" permite varios archivos; el resto admite solo 1 → reemplaza.
+    const esMultiple = this.itemSeleccionado() === 'otras';
+    const staged = esMultiple ? [...this.archivosStaged()] : [];
+    const filesToProcess = esMultiple ? files : files.slice(0, 1);
+
+    for (const file of filesToProcess) {
       if (staged.some((f) => f.nombre === file.name)) continue; // deduplicate
       const sizeMB = file.size / 1024 / 1024;
       const esPdf =

@@ -721,6 +721,22 @@ export class InformeContratistaComponent {
     this.pdfDoc?.download(this.pdfFilename);
   }
 
+  /** Registra el certificado generado en el mock de detalle-soporte y vuelve a esa pantalla. */
+  finalizarCertificado(): void {
+    const mock = MOCK_DETALLES.find((d) => d.pagoMensualId === this.pagoMensualId);
+    if (mock) {
+      const certName = `certificado-cumplido-${this.pagoMensualId}.pdf`;
+      if (!mock.soportes.some((s) => s.nombre === certName)) {
+        const hoy = new Date();
+        const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+        mock.soportes.push({ nombre: certName, fecha: `${hoy.getDate()} ${MESES[hoy.getMonth()]} ${hoy.getFullYear()}` });
+      }
+    }
+    this.visorAbierto.set(false);
+    this.pdfDataUrl.set('');
+    this.router.navigate(['/gestion-contratista/detalle-soporte', this.pagoMensualId]);
+  }
+
   cerrarVisor(): void {
     this.visorAbierto.set(false);
     this.pdfDataUrl.set('');
